@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>照片合成大挑战</title>
+
+    <!-- 游戏界面样式 -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- 游戏物理引擎 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- 游戏标题 -->
+        <header>
+            <h1>照片合成大挑战</h1>
+            <p>合成第九级，挑战成功！</p >
+        </header>
+
+        <!-- 分数信息 -->
+        <section class="info-panel">
+
+            <div class="info-card">
+                <span>当前分数</span>
+                <strong id="score">0</strong>
+            </div>
+
+            <div class="info-card">
+                <span>历史最高分</span>
+                <strong id="bestScore">0</strong>
+            </div>
+
+            <div class="info-card">
+                <span>下一个照片</span>
+                <canvas
+                    id="nextCanvas"
+                    width="80"
+                    height="80"
+                ></canvas>
+            </div>
+
+        </section>
+
+        <!-- 游戏区域 -->
+        <div class="game-wrapper">
+
+            <div id="game-container"></div>
+
+            <!-- 游戏结束或获胜提示 -->
+            <div id="message" class="message hidden">
+
+                <h2 id="message-title">游戏结束</h2>
+
+                <p id="message-text"></p >
+
+                <button id="message-restart">
+                    再玩一次
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- 游戏控制按钮 -->
+        <div class="buttons">
+
+            <button id="startBtn">
+                开始游戏
+            </button>
+
+            <button id="pauseBtn" disabled>
+                暂停游戏
+            </button>
+
+            <button id="restartBtn">
+                重新开始
+            </button>
+
+        </div>
+
+        <!-- 游戏说明 -->
+        <div class="instructions">
+
+            <h3>游戏规则</h3>
+
+            <p>1. 移动鼠标，控制照片左右位置。</p >
+
+            <p>2. 点击鼠标，将照片放入游戏区域。</p >
+
+            <p>3. 两个相同等级的圆形碰撞后自动合成。</p >
+
+            <p>4. 每次合成都会获得分数。</p >
+
+            <p>5. 合成第九级，即可获胜。</p >
+
+            <p>6. 圆形堆得太高，游戏就会结束。</p >
+
+        </div>
+
+    </div>
+
+    <!-- 游戏逻辑 -->
+    <script src="game.js"></script>
+
+</body>
+
+</html>
