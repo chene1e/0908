@@ -39,7 +39,13 @@ function checkin(){if(s.lastDaily===dayKey())return;s.lastDaily=dayKey();s.check
 function hire(){if(!cost(180))return;const type=s.staff.length%staffDefs.length;s.staff.push({id:Date.now()+Math.random(),type,shop:staffDefs[type].shop==="any"?"coffee":staffDefs[type].shop});progress("hire");initPeople();log("招募新员工："+staffDefs[type].name);toast(staffDefs[type].name+"加入团队！");save()}
 function renderSceneNote(){if(s.shops.studio.unlocked)$("sceneNote").textContent="整条街都开起来啦！生意蒸蒸日上。";else if(s.shops.delivery.unlocked)$("sceneNote").textContent="外卖订单正在路上，下一站：修 Bug 工作室。";else $("sceneNote").textContent="欢迎开张！点击下方店铺卡片，升级或解锁新店。"}
 function setupScene(){canvas=$("townCanvas");ctx=canvas.getContext("2d");const resize=()=>{const r=canvas.getBoundingClientRect();const d=Math.min(window.devicePixelRatio||1,2);sceneW=Math.max(320,r.width);sceneH=Math.max(230,r.height);canvas.width=Math.round(sceneW*d);canvas.height=Math.round(sceneH*d);ctx.setTransform(d,0,0,d,0,0);initPeople();drawScene()};if("ResizeObserver"in window)new ResizeObserver(resize).observe(canvas);else window.addEventListener("resize",resize);resize();if(!raf)raf=requestAnimationFrame(animate)}
-function initPeople(){people=[];const n=6+s.staff.length*2;for(let i=0;i<n;i++)people.push({x:.12+Math.random()*.76,y:.55+Math.random()*.31,speed:.00006+Math.random()*.00007,phase:Math.random()*6.28,shirt:["#d98b64","#7898b7","#d6b45f","#a5b88c","#b18cb3"][i%5],kind:i<s.staff.length?"staff":"customer",dir:Math.random()<.5?-1:1})}
+function initPeople(){
+ people=[];const n=7+s.staff.length*2;
+ for(let i=0;i<n;i++){
+  const route=i%4, y=[.71,.77,.82,.86][route];
+  people.push({x:.08+Math.random()*.84,y:y+(Math.random()-.5)*.018,speed:.000035+Math.random()*.000025,phase:Math.random()*6.28,shirt:["#d98567","#668eaf","#d6ae58","#7c9b78","#a38bb7","#d5a0a4"][i%6],pants:["#4d5d62","#566d85","#78634f"][i%3],kind:i<s.staff.length?"staff":"customer",dir:Math.random()<.5?-1:1,route,walk:Math.random()*6.28,task:Math.random()<.42?"work":"walk",wait:Math.random()*1600});
+ }
+}
 function poly(points,fill,stroke){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
 function isoBuilding(cx,baseY,w,h,colors,emoji,unlocked){
@@ -85,33 +91,73 @@ function tree(x,y,scale=1){
  poly([[x-8*s,y-23*s],[x,y-35*s],[x+8*s,y-23*s],[x,y-13*s]],"#a6c394");
  ctx.restore();
 }
-function person(p,t){const x=p.x*sceneW,y=p.y*sceneH+Math.sin(t/280+p.phase)*2;const size=Math.max(4,sceneW/125);ctx.save();ctx.translate(x,y);ctx.scale(p.dir,1);poly([[-size*.8,0],[0,-size*.45],[size*.8,0],[0,size*.45]],"rgba(48,70,45,.16)");rect(-size*.28,-size*.4,size*.22,size*.48,"#53624d");rect(size*.06,-size*.4,size*.22,size*.48,"#53624d");poly([[-size*.45,-size*1.55],[0,-size*1.8],[size*.45,-size*1.55],[size*.38,-size*.65],[-size*.38,-size*.65]],p.shirt);ctx.beginPath();ctx.arc(0,-size*2,size*.42,0,Math.PI*2);ctx.fillStyle="#efc59c";ctx.fill();ctx.fillStyle="#6b5040";ctx.beginPath();ctx.arc(0,-size*2.12,size*.43,Math.PI,Math.PI*2);ctx.fill();if(p.kind==="staff"){rect(-size*.48,-size*1.45,size*.96,size*.13,"#f4e6c6")}ctx.restore()}
+function person(p,t){
+ const x=p.x*sceneW,y=p.y*sceneH+Math.sin(t/190+p.phase)*1.4;
+ const size=Math.max(7,Math.min(12,sceneW/82));
+ const stride=Math.sin(t/100+p.walk)*(Math.abs(p.speed)>.00001?1:0);
+ ctx.save();ctx.translate(x,y);ctx.scale(p.dir,1);
+ // soft ground shadow
+ ctx.fillStyle="rgba(54,66,48,.18)";ctx.beginPath();ctx.ellipse(1,2,size*.75,size*.26,0,0,Math.PI*2);ctx.fill();
+ // legs with clear walking cycle
+ ctx.strokeStyle=p.pants;ctx.lineWidth=size*.2;ctx.lineCap="round";
+ ctx.beginPath();ctx.moveTo(-size*.12,-size*.62);ctx.lineTo(-size*.19+stride*size*.2,0);ctx.moveTo(size*.12,-size*.62);ctx.lineTo(size*.2-stride*size*.2,0);ctx.stroke();
+ // torso, jacket silhouette
+ poly([[-size*.36,-size*1.5],[0,-size*1.68],[size*.36,-size*1.5],[size*.31,-size*.62],[-size*.31,-size*.62]],p.shirt);
+ // shirt collar and tiny bag strap
+ poly([[-size*.13,-size*1.59],[0,-size*1.42],[size*.13,-size*1.59]],"#f4e7d1");
+ if(p.kind==="staff"){ctx.strokeStyle="#f1e5c9";ctx.lineWidth=size*.1;ctx.beginPath();ctx.moveTo(-size*.27,-size*1.42);ctx.lineTo(size*.19,-size*.82);ctx.stroke();poly([[size*.12,-size*.9],[size*.42,-size*.86],[size*.39,-size*.55],[size*.1,-size*.58]],"#8a715a")}
+ // swinging arms
+ ctx.strokeStyle=p.shirt;ctx.lineWidth=size*.17;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(-size*.29,-size*1.37);ctx.lineTo(-size*.43,-size*1.02+stride*size*.12);ctx.moveTo(size*.29,-size*1.37);ctx.lineTo(size*.42,-size*1.02-stride*size*.12);ctx.stroke();
+ // head, ears, hair
+ ctx.fillStyle="#efc49d";ctx.beginPath();ctx.arc(0,-size*1.92,size*.31,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#6d5142";ctx.beginPath();ctx.arc(0,-size*2.02,size*.32,Math.PI,Math.PI*2);ctx.lineTo(size*.27,-size*1.89);ctx.lineTo(-size*.28,-size*1.89);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#3e4139";ctx.beginPath();ctx.arc(size*.12,-size*1.92,size*.025,0,Math.PI*2);ctx.fill();
+ // employee badge
+ if(p.kind==="staff"){ctx.fillStyle="#fff3d6";ctx.fillRect(-size*.06,-size*1.25,size*.12,size*.13)}
+ ctx.restore();
+}
 function drawScene(t=performance.now()){
  if(!ctx)return;const w=sceneW,h=sceneH;ctx.clearRect(0,0,w,h);
- const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,"#eaf2e5");sky.addColorStop(.56,"#d8e7d1");sky.addColorStop(1,"#c7d7bd");rect(0,0,w,h,"#dce9d2");ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
- // distant soft hills
- poly([[0,h*.35],[w*.18,h*.22],[w*.36,h*.34],[w*.58,h*.2],[w*.82,h*.32],[w,h*.23],[w,h*.58],[0,h*.58]],"#c7d9bd");
- // orderly garden beds
- poly([[0,h*.43],[w*.5,h*.2],[w,h*.43],[w*.5,h*.67]],"#d3e0c6");
- // street pavement
- poly([[0,h*.57],[w*.5,h*.32],[w,h*.57],[w*.5,h*.91]],"#e7dfcc");
- poly([[0,h*.66],[w*.5,h*.42],[w,h*.66],[w*.5,h*.99]],"#f0e8d8");
- // pavement seams
- for(let i=1;i<7;i++){const xx=i*w/7;poly([[xx,h*.66],[xx+2,h*.655],[xx+2,h*.98],[xx,h]],"#d9d0bc")}
- for(let i=0;i<8;i++){const xx=i*w/7;tree(xx+12,h*(.34+(i%2)*.06),.58+(i%3)*.1)}
- // storefront shadows and buildings
- const base=h*.68;
- isoBuilding(w*.2,base,w*.24,h*.37,["#c58c69","#f3d8b9","#d9b092","#b87e5d","#f4dfc5"],"☕",true);
- isoBuilding(w*.5,base-h*.07,w*.23,h*.34,["#9cb8b8","#e5eeea","#bfd5d0","#7fa6a4","#f3eee0"],"🛵",s.shops.delivery.unlocked);
- isoBuilding(w*.8,base-h*.1,w*.24,h*.36,["#b0a4c8","#ece4f0","#c8bddb","#9386b2","#f4edf7"],"⌘",s.shops.studio.unlocked);
- // flower planters and street furniture
- for(let i=0;i<4;i++){const x=w*(.08+i*.27),y=h*(.77+(i%2)*.05);poly([[x-12,y],[x,y-6],[x+12,y],[x,y+6]],"#a6bd8f");rect(x-8,y-2,16,8,"#c18f70");for(let j=0;j<3;j++){ctx.fillStyle=["#d89c92","#e4c77d","#9bbca1"][j];ctx.beginPath();ctx.arc(x-5+j*5,y-7-(j%2)*3,3,0,Math.PI*2);ctx.fill()}}
- // subtle shop labels
- ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.font="600 10px system-ui,sans-serif";ctx.fillStyle="#6b8064";ctx.fillText("群友商业街",w*.5,h*.075);
- ctx.font="10px system-ui,sans-serif";ctx.fillStyle="#7d8c73";ctx.fillText("COFFEE  ·  DELIVERY  ·  STUDIO",w*.5,h*.115);
- for(const p of people)person(p,t);
+ // warm, layered mini-town backdrop
+ const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,"#dcece0");sky.addColorStop(.6,"#edf0dd");sky.addColorStop(1,"#c5d8b8");ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+ // distant rooftops and tree line
+ poly([[0,h*.3],[w*.1,h*.21],[w*.2,h*.29],[w*.33,h*.17],[w*.44,h*.28],[w*.62,h*.19],[w*.77,h*.28],[w*.9,h*.2],[w,h*.27],[w,h*.54],[0,h*.54]],"#b9d0b2");
+ for(let i=0;i<10;i++){const x=i*w/9;ctx.fillStyle=i%2?"#92b18c":"#a5c29a";ctx.beginPath();ctx.arc(x,h*(.31+(i%3)*.025),h*.055,0,Math.PI*2);ctx.fill()}
+ // street ground as broad isometric planes
+ poly([[0,h*.42],[w*.5,h*.18],[w,h*.42],[w*.5,h*.72]],"#d4e2c8");
+ poly([[0,h*.54],[w*.5,h*.29],[w,h*.54],[w*.5,h*.84]],"#e9dfc9");
+ poly([[0,h*.65],[w*.5,h*.4],[w,h*.65],[w*.5,h*.98]],"#f2e9d8");
+ // diagonal sidewalk seams and curb
+ poly([[0,h*.59],[w*.5,h*.34],[w,h*.59],[w*.5,h*.63]],"#c6bda8");
+ for(let i=0;i<8;i++){const x=i*w/7;poly([[x,h*.64],[x+2,h*.638],[x+2,h*.93],[x,h*.96]],"#ded4c0")}
+ // landscaping sits behind storefronts
+ for(let i=0;i<9;i++){const x=i*w/8;tree(x+5,h*(.4+(i%2)*.035),.56+(i%3)*.12)}
+ // buildings have individual shop palettes and clear storefront silhouettes
+ const base=h*.67;
+ isoBuilding(w*.2,base,w*.255,h*.38,["#bd7d5b","#f3d7b8","#d8ad8e","#a9684d","#f6e4cb"],"☕",true);
+ isoBuilding(w*.5,base-h*.045,w*.245,h*.35,["#739e9b","#e4eee5","#b8d2c9","#5f8c88","#f1eadb"],"↗",s.shops.delivery.unlocked);
+ isoBuilding(w*.8,base-h*.075,w*.255,h*.37,["#8f82af","#ece3f0","#c5b8d8","#796d9b","#f4eaf4"],"⌘",s.shops.studio.unlocked);
+ // road foreground and tiny crosswalk
+ poly([[0,h*.79],[w*.5,h*.55],[w,h*.79],[w*.5,h*1.12]],"#d7d2c2");
+ for(let i=0;i<5;i++){const x=w*(.37+i*.055);poly([[x,h*.81],[x+10,h*.785],[x+15,h*.8],[x+5,h*.825]],"#f8f3e8")}
+ // planters, flower heads, bench
+ for(let i=0;i<4;i++){const x=w*(.1+i*.26),y=h*(.77+(i%2)*.045);poly([[x-15,y],[x,y-7],[x+15,y],[x,y+7]],"#9bb58a");poly([[x-12,y-3],[x+12,y-3],[x+10,y+7],[x-10,y+7]],"#b87d62");for(let j=0;j<3;j++){ctx.fillStyle=["#d88d8b","#e4c46e","#8eb99a"][j];ctx.beginPath();ctx.arc(x-5+j*5,y-8-(j%2)*3,2.8,0,Math.PI*2);ctx.fill()}}
+ const bx=w*.68,by=h*.82;rect(bx,by, w*.07,3,"#8a755d");rect(bx+3,by-8,w*.064,3,"#8a755d");rect(bx+5,by-7,3,10,"#8a755d");rect(bx+w*.065,by-7,3,10,"#8a755d");
+ // people move along the street in depth order, foreground first
+ [...people].sort((a,b)=>a.y-b.y).forEach(p=>person(p,t));
+ ctx.textAlign="center";ctx.font="600 10px system-ui,sans-serif";ctx.fillStyle="#647d60";ctx.fillText("群友商业街",w*.5,h*.075);
 }
-function animate(t){raf=requestAnimationFrame(animate);if(t-lastFrame<70)return;const dt=Math.min(100,t-lastFrame||16);lastFrame=t;for(const p of people){p.x+=p.speed*dt*p.dir;if(p.x>.9){p.x=.9;p.dir=-1}else if(p.x<.08){p.x=.08;p.dir=1}}drawScene(t)}
+function animate(t){
+ raf=requestAnimationFrame(animate);if(t-lastFrame<45)return;const dt=Math.min(80,t-lastFrame||16);lastFrame=t;
+ for(const p of people){
+  p.wait-=dt;
+  if(p.wait<=0){p.x+=p.speed*dt*p.dir;p.walk+=dt*.018;if(p.x>.91){p.x=.91;p.dir=-1;p.wait=400+Math.random()*900}else if(p.x<.07){p.x=.07;p.dir=1;p.wait=300+Math.random()*900}
+   // pedestrians briefly pause near a shop instead of sliding like a screensaver
+   if(p.task==="work"&&Math.random()<.008)p.wait=900+Math.random()*1200;
+  }
+ }
+ drawScene(t);
+}
 function updateScene(){if(!ctx)return;drawScene()}
 document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b===btn));["business","staff","tasks","profile"].forEach(k=>$("panel-"+k).classList.toggle("hidden",k!==btn.dataset.tab))}));
 document.querySelectorAll("[data-action]").forEach(btn=>btn.addEventListener("click",()=>btn.dataset.action==="unlock"?unlock(btn.dataset.shop):upgrade(btn.dataset.shop)));$("unlockDelivery").addEventListener("click",()=>unlock("delivery"));
