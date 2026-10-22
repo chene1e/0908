@@ -283,3 +283,44 @@ button {
 #game-container canvas {
     touch-action: pan-y;
 }
+
+
+/* 大群友封面与大厅 */
+.cover-screen,.panel-view{max-width:520px;margin:0 auto;text-align:center;padding:28px 18px 24px;background:linear-gradient(180deg,#fff8e8 0%,#ffffff 72%);border-radius:22px;box-shadow:0 8px 28px #523b1614;min-height:calc(100vh - 40px)}
+.cover-mark{font-size:52px;margin:12px 0 8px}
+.cover-kicker{font-size:12px;letter-spacing:3px;color:#b57b24;font-weight:700;margin:12px 0}
+.cover-screen h1{font-size:32px;line-height:1.25;margin:8px 0;color:#352719}
+.cover-subtitle{color:#7d6b56;margin:0 0 20px}
+.profile-card{max-width:340px;margin:22px auto 18px;padding:20px;background:#fff;border:1px solid #f0e3cf;border-radius:18px}
+.avatar-preview-wrap{width:84px;height:84px;border-radius:50%;overflow:hidden;margin:0 auto 10px;background:#f4ead8;display:flex;align-items:center;justify-content:center;border:3px solid #f1d7a7}
+.avatar-preview{width:100%;height:100%;object-fit:cover}
+.avatar-fallback{font-size:38px}
+.upload-avatar{display:inline-block;color:#98661b;font-size:13px;text-decoration:underline;cursor:pointer;margin-bottom:16px}
+.profile-label{display:block;text-align:left;font-size:13px;color:#665744;margin:4px 0 7px}
+.name-input{width:100%;padding:12px;border:1px solid #e7dac5;border-radius:10px;font-size:16px;outline-color:#d6a54f}
+.profile-hint{font-size:12px;color:#8b8174;line-height:1.5;margin:10px 0 0}
+.cover-actions{display:grid;gap:12px;max-width:340px;margin:20px auto}
+.primary-button,.outline-button,.secondary-button,.back-button{width:100%;padding:14px 16px;border-radius:12px;font-size:16px;font-weight:700}
+.primary-button{background:#d9942e;color:#fff;box-shadow:0 4px 0 #b7791f}
+.outline-button{background:#fff;color:#9a641b;border:1px solid #d9b36e}
+.secondary-button{background:#f1e4cc;color:#68491d}
+.back-button{width:auto;display:block;background:transparent;color:#7c6545;padding:7px 0;text-align:left;font-size:14px}
+.cover-footnote{font-size:12px;color:#9b8d7a;line-height:1.6;margin:20px auto 0;max-width:300px}
+.panel-view{text-align:left;background:#fff;padding:22px 18px}
+.panel-view h2{text-align:center;font-size:28px;margin:8px 0}
+.leaderboard-note{text-align:center;font-size:13px;color:#817565;line-height:1.6}
+.leaderboard-list{list-style:none;margin:20px 0;padding:0}
+.leaderboard-list li{display:flex;align-items:center;gap:11px;padding:12px 10px;border-bottom:1px solid #f0ece5}
+.rank-number{width:28px;text-align:center;font-weight:800;color:#9b8a72}
+.rank-avatar{width:42px;height:42px;object-fit:cover;border-radius:50%;background:#f3eadc;flex-shrink:0}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-weight:700;overflow-wrap:anywhere}
+.rank-time{font-size:11px;color:#999;margin-top:4px}
+.rank-score{font-size:20px;font-weight:800;color:#c17d1c}
+.empty-ranking{text-align:center;color:#9b8d7a;padding:30px 12px}
+.score-submit-area{margin:0 0 14px;width:100%;max-width:280px}
+.score-submit-area p{font-size:13px;line-height:1.5}
+.score-submit-area button{width:100%}
+#gameView header{padding-top:8px}
+#gameBackBtn{margin-bottom:8px}
+@media(max-width:400px){.cover-screen,.panel-view{padding:20px 14px}.cover-screen h1{font-size:28px}.profile-card{padding:16px}}
