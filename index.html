@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>主题合成大群友</title>
-<link rel="stylesheet" href="style.css?v=20261022-stop1">
+<link rel="stylesheet" href="style.css?v=20261022-fun1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
@@ -51,7 +51,21 @@
       <div class="info-card"><span>历史最高分</span><strong id="bestScore">0</strong></div>
       <div class="info-card"><span>下一个照片</span><canvas id="nextCanvas" width="80" height="80"></canvas></div>
     </section>
+    <section class="fun-panel">
+      <div class="fun-panel-head">
+        <div><strong>🎯 今日挑战</strong><p>完成小目标，解锁更多群友</p></div>
+        <button id="collectionToggleBtn" class="mini-button" type="button">📚 群友图鉴</button>
+      </div>
+      <div id="dailyMissions" class="daily-missions"></div>
+      <p id="collectionSummary" class="collection-summary">图鉴载入中…</p>
+      <div id="collectionPanel" class="collection-panel hidden">
+        <h3>📚 群友图鉴</h3>
+        <p>不断合成，发现全部 9 个等级；金色闪光代表发现过稀有变体。</p>
+        <div id="collectionGrid" class="collection-grid"></div>
+      </div>
+    </section>
     <div class="game-wrapper">
+      <div id="gameToast" class="game-toast" role="status" aria-live="polite"></div>
       <div id="game-container"></div>
       <div id="message" class="message hidden">
         <h2 id="message-title">游戏结束</h2>
@@ -81,7 +95,7 @@
   </section>
 </div>
 <script src="config.js?v=20261022-stop1"></script>
-<script src="game.js?v=20261022-stop1"></script>
+<script src="game.js?v=20261022-fun1"></script>
 <script src="lobby.js?v=20261022-requestack1"></script>
 </body>
 </html>
