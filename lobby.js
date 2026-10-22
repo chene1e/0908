@@ -15,6 +15,9 @@
   let rankingPage = 1;
   let cachedLeaderboardRows = [];
   const rankingPageSize = 10;
+  const rankingCacheKey = "groupGameLeaderboardCacheV1";
+  function readRankingCache(mode) { try { const cache = JSON.parse(sessionStorage.getItem(rankingCacheKey) || "{}"); return Array.isArray(cache[mode]) ? cache[mode] : null; } catch (_) { return null; } }
+  function writeRankingCache(mode, rows) { try { const cache = JSON.parse(sessionStorage.getItem(rankingCacheKey) || "{}"); cache[mode] = rows; sessionStorage.setItem(rankingCacheKey, JSON.stringify(cache)); } catch (_) {} }
 
   function readProfile() {
     try { return JSON.parse(localStorage.getItem("bigGroupProfile") || "{}"); } catch (_) { return {}; }
@@ -96,7 +99,7 @@
       const index = (rankingPage - 1) * rankingPageSize + pageIndex;
       const li = document.createElement("li");
       const rank = document.createElement("span"); rank.className = "rank-number"; rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index + 1);
-      const img = document.createElement("img"); img.className = "rank-avatar"; img.alt = ""; img.src = row.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
+      const img = document.createElement("img"); img.className = "rank-avatar"; img.alt = ""; img.loading = "lazy"; img.decoding = "async"; img.src = row.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
       img.addEventListener("error", function () { this.onerror = null; this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E"; });
       const info = document.createElement("div"); info.className = "rank-info";
       const name = document.createElement("div"); name.className = "rank-name"; name.textContent = row.name || "神秘群友";
@@ -117,12 +120,28 @@
   }
   async function loadLeaderboard() {
     rankingPage = 1;
-    leaderboardStatus.textContent = "正在读取排行榜…";
+    const cached = readRankingCache(rankingMode);
+    if (cached) {
+      cachedLeaderboardRows = cached;
+      renderRows(cached, rankingMode);
+      leaderboardStatus.textContent = "显示缓存排行榜，正在后台更新…";
+    } else {
+      leaderboardStatus.textContent = "正在读取排行榜…";
+    }
     try {
       if (hasRemote()) {
-        const rankingQuery = rankingMode === "time" ? "game_scores?select=name,avatar,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20" : "game_scores?select=name,avatar,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
-        const rows = await remoteRequest(rankingQuery);
+        // 不读取 avatar：历史头像可能是很大的 base64 字符串，是排行榜首屏慢的重要来源。
+        // 排行榜用统一默认头像，显著减少传输量。
+        const rankingQuery = rankingMode === "time"
+          ? "game_scores?select=name,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20"
+          : "game_scores?select=name,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
+        const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        const timeout = controller ? setTimeout(() => controller.abort(), 8000) : null;
+        let rows;
+        try { rows = await remoteRequest(rankingQuery, controller ? { signal: controller.signal } : undefined); }
+        finally { if (timeout) clearTimeout(timeout); }
         cachedLeaderboardRows = rows;
+        writeRankingCache(rankingMode, rows);
         renderRows(rows, rankingMode);
         leaderboardStatus.textContent = rankingMode === "time"
           ? "在线全球榜 · 仅统计成功合成 Level 9 的成绩，时间越短排名越高"
@@ -133,9 +152,13 @@
         leaderboardStatus.textContent = "当前为本机预览榜；配置在线数据库后，所有人才能共享成绩。";
       }
     } catch (_) {
-      cachedLeaderboardRows = localScores();
-      renderRows(cachedLeaderboardRows, rankingMode);
-      leaderboardStatus.textContent = "⚠ 在线排行榜读取失败，当前显示本机记录（不代表全球榜）。请检查网络后刷新。";
+      if (!cached) {
+        cachedLeaderboardRows = localScores();
+        renderRows(cachedLeaderboardRows, rankingMode);
+      }
+      leaderboardStatus.textContent = cached
+        ? "已显示缓存排行榜；云端更新失败，稍后可刷新。"
+        : "⚠ 在线排行榜读取失败，当前显示本机记录（不代表全球榜）。请检查网络后刷新。";
     }
   }
   window.finishAndOfferScore = function (score, elapsedMs, wonRound) {
