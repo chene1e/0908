@@ -318,7 +318,23 @@
       : cachedLeaderboardRows).length / rankingPageSize));
     if (rankingPage < pageCount) { rankingPage++; loadLeaderboardPage(); }
   });
-  function loadLeaderboardPage() {
+  async function loadLeaderboardPage() {
+    const start = (rankingPage - 1) * rankingPageSize;
+    const pageRows = cachedLeaderboardRows.slice(start, start + rankingPageSize);
+    const missing = pageRows.filter(row => row.id && !Object.prototype.hasOwnProperty.call(row, "avatar"));
+    if (missing.length && hasRemote()) {
+      try {
+        const ids = missing.map(row => row.id).filter(id => Number.isFinite(Number(id)));
+        if (ids.length) {
+          const avatarRows = await remoteRequest("game_scores?select=id,avatar&id=in.(" + ids.join(",") + ")");
+          const avatarById = new Map(avatarRows.map(item => [String(item.id), item.avatar || ""]));
+          cachedLeaderboardRows = cachedLeaderboardRows.map(row =>
+            avatarById.has(String(row.id)) ? Object.assign({}, row, { avatar: avatarById.get(String(row.id)) }) : row
+          );
+          writeRankingCache(rankingMode, cachedLeaderboardRows);
+        }
+      } catch (_) { /* keep scores visible if avatar request fails */ }
+    }
     renderRows(cachedLeaderboardRows, rankingMode);
   }
   $("scoreLeaderboardTab").addEventListener("click", function () { setRankingMode("score"); });
