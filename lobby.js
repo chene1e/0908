@@ -2,6 +2,7 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const cover = $("cover"), gameView = $("gameView"), leaderboardView = $("leaderboardView");
+  const libraryCover = $("libraryCover"), developmentView = $("developmentView");
   const nameInput = $("playerName"), avatarInput = $("avatarInput"), avatarPreview = $("avatarPreview"), avatarFallback = $("avatarFallback");
   const profileHint = $("profileHint"), leaderboardList = $("leaderboardList"), leaderboardStatus = $("leaderboardStatus");
   const config = window.LEADERBOARD_CONFIG || {};
@@ -219,6 +220,30 @@
     reader.readAsDataURL(file);
   });
   $("saveProfileBtn").addEventListener("click", saveProfile);
+  $("openMergeGameBtn").addEventListener("click", function () {
+    if (libraryCover) libraryCover.classList.add("hidden");
+    if (developmentView) developmentView.classList.add("hidden");
+    cover.classList.remove("hidden");
+    window.scrollTo(0, 0);
+  });
+  $("openMatchGameBtn").addEventListener("click", function () {
+    if (libraryCover) libraryCover.classList.add("hidden");
+    cover.classList.add("hidden");
+    gameView.classList.add("hidden");
+    leaderboardView.classList.add("hidden");
+    if (developmentView) developmentView.classList.remove("hidden");
+    window.scrollTo(0, 0);
+  });
+  $("developmentBackBtn").addEventListener("click", function () {
+    if (developmentView) developmentView.classList.add("hidden");
+    if (libraryCover) libraryCover.classList.remove("hidden");
+    window.scrollTo(0, 0);
+  });
+  $("gameLibraryBackBtn").addEventListener("click", function () {
+    cover.classList.add("hidden");
+    if (libraryCover) libraryCover.classList.remove("hidden");
+    window.scrollTo(0, 0);
+  });
   $("coverStartBtn").addEventListener("click", function () {
     if (!saveProfile()) return;
     cover.classList.add("hidden"); leaderboardView.classList.add("hidden"); gameView.classList.remove("hidden");
