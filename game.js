@@ -92,7 +92,10 @@ const restartBtn =
     document.getElementById("restartBtn");
 
 const stopBtn =
-    document.getElementById("stopBtn");
+    document.getElementById("stopBtnTop");
+
+const stopBtnBottom =
+    document.getElementById("stopBtnBottom");
 
 const message =
     document.getElementById("message");
@@ -1663,6 +1666,14 @@ pauseBtn.addEventListener(
 );
 
 stopBtn.addEventListener(
+
+    "click",
+
+    stopGameManually
+
+);
+
+stopBtnBottom.addEventListener(
 
     "click",
 
