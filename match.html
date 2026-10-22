@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f7f2e9">
-<title>群友消消乐</title><link rel="stylesheet" href="match.css?v=3">
+<title>群友消消乐</title><link rel="stylesheet" href="match.css?v=20261022-fix2">
 </head>
 <body>
 <main class="match-app">
@@ -14,7 +14,7 @@
     <p class="cover-subtitle">一分钟限时挑战！交换头像，凑齐三个相同的群友。</p>
     <div class="cover-rules"><span>⏱️ 60 秒</span><span>✨ 三消得分</span><span>🏆 冲击排行榜</span></div>
     <button id="startGame" class="start-game" type="button">开始游戏</button>
-    <section class="ranking-panel cover-ranking" aria-labelledby="rankingTitle"><h2 id="rankingTitle">🏆 本机排行榜</h2><p>按分数排序，仅保存在当前浏览器</p><ol id="rankingList" class="ranking-list"></ol></section>
+    <a class="ranking-open" href="ranking.html?v=20261022-fix2">🏆 查看排行榜</a>
   </section>
   <section id="gameArea" class="game-area hidden">
     <header class="hero"><p class="eyebrow">GROUP FRIENDS MATCH</p><h1>群友消消乐</h1><p>交换头像，凑齐三个相同的群友！</p></header>
@@ -31,5 +31,5 @@
   </section>
   <div id="result" class="result hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle"><div class="result-card"><div id="resultEmoji" class="result-emoji">🏁</div><h2 id="resultTitle">本局结束</h2><p id="resultText"></p><button id="playAgain" type="button">再来一局</button><a id="backToCover" href="#">返回封面</a></div></div>
 </main>
-<script src="match.js?v=5"></script>
+<script src="match.js?v=20261022-fix2"></script>
 </body></html>
