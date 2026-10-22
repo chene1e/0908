@@ -33,9 +33,13 @@
     try { localStorage.setItem("bigGroupScores", JSON.stringify(rows)); } catch (_) {}
   }
   async function remoteRequest(path, options) {
-    const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({
-      headers: { apikey: config.supabaseAnonKey, Authorization: "Bearer " + config.supabaseAnonKey, "Content-Type": "application/json" }
-    }, options || {}));
+    const opts = options || {};
+    const headers = Object.assign({
+      apikey: config.supabaseAnonKey,
+      Authorization: "Bearer " + config.supabaseAnonKey,
+      "Content-Type": "application/json"
+    }, opts.headers || {});
+    const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({}, opts, { headers }));
     if (!response.ok) throw new Error("排行榜服务暂不可用");
     if (response.status === 204) return [];
     return response.json();
