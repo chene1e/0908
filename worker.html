@@ -2,49 +2,66 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101827">
+<meta name="theme-color" content="#dce9d2">
 <title>群友打工模拟器 · 兄弟姐妹全上岸游戏库</title>
-<link rel="stylesheet" href="worker.css?v=20261022-v1">
-<script defer src="config.js?v=20261022-stop2"></script>
-<script defer src="worker.js?v=20261022-v1"></script>
+<link rel="stylesheet" href="worker.css?v=20261022-2p5d">
+<script defer src="worker.js?v=20261022-2p5d"></script>
 </head>
 <body>
-<main class="worker-app">
-<a class="back-link" href="index.html">← 返回游戏库</a>
-<header class="hero">
-  <div class="eyebrow">PIXEL FRIENDS · WORK & GROW</div>
-  <h1>群友打工模拟器</h1>
-  <p>打工赚金币，升级工作台，努力成为群友首富！</p>
-</header>
-<section class="profile panel">
-  <div class="avatar" id="workerAvatar">🧑‍💻</div>
-  <div class="profile-main">
-    <label for="workerName">你的群昵称</label>
-    <div class="name-row"><input id="workerName" maxlength="40" placeholder="输入你的群昵称"><button id="saveName" class="small-btn">保存</button></div>
-    <p id="rankTitle" class="rank-title">实习群友</p>
-  </div>
-</section>
-<section class="stats">
-  <div class="stat panel"><span>钱包余额</span><strong id="coins">0</strong><small>🪙 金币</small></div>
-  <div class="stat panel"><span>累计收入</span><strong id="lifetime">0</strong><small>💰 已赚金币</small></div>
-  <div class="stat panel"><span>体力</span><strong id="energy">100/100</strong><small id="energyHint">休息一下会恢复</small></div>
-</section>
-<section class="work-card panel">
-  <div class="section-heading"><div><span class="eyebrow">DAILY SHIFT</span><h2>今天干点啥？</h2></div><span class="badge" id="workLevel">工作台 Lv.1</span></div>
-  <div class="job-list">
-    <button class="job" data-job="coffee"><span class="job-icon">☕</span><span class="job-copy"><b>咖啡店打工</b><small>轻松赚金币 · 消耗 8 体力</small></span><span class="job-pay">+<b id="coffeePay">12</b> 🪙</span></button>
-    <button class="job" data-job="delivery"><span class="job-icon">🛵</span><span class="job-copy"><b>外卖冲刺</b><small>收入更高 · 消耗 18 体力</small></span><span class="job-pay">+<b id="deliveryPay">30</b> 🪙</span></button>
-    <button class="job" data-job="coding"><span class="job-icon">💻</span><span class="job-copy"><b>紧急修 Bug</b><small>高薪项目 · 消耗 30 体力</small></span><span class="job-pay">+<b id="codingPay">55</b> 🪙</span></button>
-  </div>
-  <p id="workStatus" class="status" role="status" aria-live="polite">选择一份工作，开始今天的奋斗。</p>
-  <div class="actions"><button id="restBtn" class="secondary">🛋️ 摸鱼休息 +35 体力</button><button id="dailyBtn" class="secondary">🎁 领取今日补贴</button></div>
-</section>
-<section class="shop panel">
-  <div class="section-heading"><div><span class="eyebrow">UPGRADE</span><h2>投资自己</h2></div><span class="badge">永久生效</span></div>
-  <div class="upgrade-row"><div class="upgrade-icon">🧰</div><div class="upgrade-copy"><b>升级工作装备</b><small>每级工作收入 +20%</small><small id="upgradeLevel">当前等级：Lv.1</small></div><button id="upgradeBtn" class="buy-btn">升级 · 100 🪙</button></div>
-  <div class="upgrade-row"><div class="upgrade-icon">🥤</div><div class="upgrade-copy"><b>购买能量饮料</b><small>立刻恢复 40 体力</small><small>最多恢复到 100</small></div><button id="drinkBtn" class="buy-btn">购买 · 45 🪙</button></div>
-</section>
-<section class="log panel"><div class="section-heading"><h2>📒 打工日记</h2><button id="resetBtn" class="text-btn">重开存档</button></div><ol id="logList"><li>你的打工生活开始了！</li></ol></section>
-<footer>所有进度保存在当前浏览器 · 劳逸结合，别忘了休息</footer>
+<main class="game-shell">
+  <a class="back-link" href="index.html">← 返回游戏库</a>
+  <header class="topbar">
+    <div><p class="eyebrow">LITTLE TOWN · BIG DREAMS</p><h1>群友打工模拟器</h1><p class="subtitle">从一家小店开始，把整条街经营起来。</p></div>
+    <div class="player-chip"><span id="playerAvatar">🧑🏻‍💼</span><div><b id="playerRank">打工新人</b><small id="playerNameLabel">新来的群友</small></div></div>
+  </header>
+  <section class="hud" aria-label="经营数据">
+    <div class="hud-item"><span>钱包</span><strong>🪙 <b id="coins">120</b></strong></div>
+    <div class="hud-item"><span>待领取利润</span><strong>💰 <b id="pending">0</b></strong></div>
+    <div class="hud-item"><span>商业街等级</span><strong>🏘️ <b id="streetLevel">1</b></strong></div>
+    <div class="hud-item"><span>今日体力</span><strong>⚡ <b id="energy">100</b>/100</strong></div>
+  </section>
+  <section class="town-wrap">
+    <div class="scene-heading"><div><span class="live-dot"></span><b>群友街 · 营业中</b><small id="sceneHint">店员们正在忙碌，顾客陆续到来</small></div><button id="claimBtn" class="claim-btn">领取利润 <span>＋</span></button></div>
+    <div class="town-scene" id="townScene" aria-label="低多边形商业街场景">
+      <canvas id="townCanvas" aria-label="商业街场景：咖啡店、外卖站、修 Bug 工作室以及自动走动的员工和顾客"></canvas>
+      <div class="scene-label label-coffee">☕ 群友咖啡</div><div class="scene-label label-delivery" id="deliveryLabel">🛵 外卖站 · 未解锁</div><div class="scene-label label-studio" id="studioLabel">💻 修 Bug 工作室 · 未解锁</div>
+      <div class="scene-note" id="sceneNote">欢迎开张！点击店铺卡片开始经营。</div>
+    </div>
+    <div class="scene-legend"><span><i class="legend-person"></i>员工</span><span><i class="legend-customer"></i>顾客</span><span>🌿 微缩小镇 · 斜俯视视角</span></div>
+  </section>
+  <nav class="tabs" aria-label="游戏菜单">
+    <button class="tab active" data-tab="business">🏪 <span>经营</span></button><button class="tab" data-tab="staff">🧑‍🍳 <span>员工</span></button><button class="tab" data-tab="tasks">📋 <span>任务</span></button><button class="tab" data-tab="profile">🎒 <span>我的</span></button>
+  </nav>
+  <section class="content-panel" id="panel-business">
+    <div class="panel-title"><div><p class="eyebrow">YOUR LITTLE EMPIRE</p><h2>街区经营</h2></div><span class="pill" id="autoMode">自动经营中</span></div>
+    <div class="shop-grid">
+      <article class="shop-card selected" data-shop="coffee"><div class="shop-art coffee-art">☕<span>OPEN</span></div><div class="shop-info"><div class="shop-name"><b>群友咖啡店</b><span class="level-tag" id="coffeeLevel">Lv.1</span></div><p>稳定收入 · 温暖开局</p><div class="shop-income">预计净收益 <b id="coffeeIncome">+8</b><small>/分钟</small></div><div class="shop-actions"><button data-action="upgrade" data-shop="coffee" class="primary-btn">升级店铺 · <span id="coffeeCost">100</span>🪙</button><button data-action="unlock" data-shop="delivery" class="secondary-btn hidden" id="unlockDelivery">解锁外卖站 · 350🪙</button></div></div></article>
+      <article class="shop-card locked" data-shop="delivery"><div class="shop-art delivery-art">🛵<span id="deliveryStatus">LOCKED</span></div><div class="shop-info"><div class="shop-name"><b>群友外卖站</b><span class="level-tag" id="deliveryLevel">未解锁</span></div><p>订单飞驰 · 效率至上</p><div class="shop-income">预计净收益 <b id="deliveryIncome">—</b><small>/分钟</small></div><div class="shop-actions"><button data-action="unlock" data-shop="delivery" class="primary-btn" id="deliveryButton">解锁店铺 · 350🪙</button><button data-action="upgrade" data-shop="delivery" class="primary-btn hidden" id="deliveryUpgrade">升级 · <span id="deliveryCost">180</span>🪙</button></div></div></article>
+      <article class="shop-card locked" data-shop="studio"><div class="shop-art studio-art">💻<span id="studioStatus">LOCKED</span></div><div class="shop-info"><div class="shop-name"><b>群友修 Bug 工作室</b><span class="level-tag" id="studioLevel">未解锁</span></div><p>高价值项目 · 程序员的浪漫</p><div class="shop-income">预计净收益 <b id="studioIncome">—</b><small>/分钟</small></div><div class="shop-actions"><button data-action="unlock" data-shop="studio" class="primary-btn" id="studioButton">解锁店铺 · 900🪙</button><button data-action="upgrade" data-shop="studio" class="primary-btn hidden" id="studioUpgrade">升级 · <span id="studioCost">300</span>🪙</button></div></div></article>
+    </div>
+    <div class="work-box"><div><p class="eyebrow">SIDE HUSTLE</p><h3>亲自上阵，赚点外快</h3><p>做完工作还能完成每日任务。</p></div><div class="work-buttons"><button data-job="coffee">☕ 咖啡兼职 <b>+25</b></button><button data-job="delivery">🛵 跑一单 <b>+45</b></button><button data-job="coding">💻 修个 Bug <b>+70</b></button></div><p class="inline-status" id="workStatus" role="status" aria-live="polite">休闲玩就好，店铺会自动营业。</p></div>
+  </section>
+  <section class="content-panel hidden" id="panel-staff">
+    <div class="panel-title"><div><p class="eyebrow">YOUR TEAM</p><h2>招募群友员工</h2></div><span class="pill" id="staffCount">0 位员工</span></div>
+    <p class="panel-intro">员工会自动在商业街走动、工作。分配他们到合适的店铺，提升经营效率。</p>
+    <div class="staff-list" id="staffList"></div>
+    <button id="hireBtn" class="primary-btn hire-btn">＋ 招募员工 · 180🪙</button>
+  </section>
+  <section class="content-panel hidden" id="panel-tasks">
+    <div class="panel-title"><div><p class="eyebrow">DAILY LITTLE WINS</p><h2>签到与任务</h2></div><span class="pill" id="taskProgress">0/5 完成</span></div>
+    <div class="checkin-card"><div class="checkin-icon">🎁</div><div><b>今日签到</b><p id="checkinText">连续签到，积累开店基金。</p></div><button id="checkinBtn" class="primary-btn">签到 +100🪙</button></div>
+    <div class="task-list" id="taskList"></div>
+    <div class="weekly-card"><div><b>📆 本周经营目标</b><p id="weeklyText">累计赚取 500 金币</p><div class="progress"><span id="weeklyProgress"></span></div></div><b id="weeklyCount">0/500</b></div>
+  </section>
+  <section class="content-panel hidden" id="panel-profile">
+    <div class="panel-title"><div><p class="eyebrow">YOUR STORY</p><h2>我的小店人生</h2></div><span class="pill">本地存档</span></div>
+    <div class="profile-form"><label for="playerName">群昵称</label><div class="name-edit"><input id="playerName" maxlength="24" placeholder="给自己取个名字"><button id="saveProfile" class="secondary-btn">保存</button></div><label for="playerEmoji">头像</label><div class="avatar-picker" id="avatarPicker"><button data-avatar="🧑🏻‍💼" class="picked">🧑🏻‍💼</button><button data-avatar="👩🏻‍🍳">👩🏻‍🍳</button><button data-avatar="🧑🏻‍💻">🧑🏻‍💻</button><button data-avatar="🧋">🧋</button><button data-avatar="🐱">🐱</button><button data-avatar="🐸">🐸</button></div></div>
+    <div class="profile-stats"><div><span>累计赚取</span><b id="totalEarned">0</b></div><div><span>已解锁店铺</span><b id="shopsOwned">1/3</b></div><div><span>已招募员工</span><b id="staffOwned">0</b></div><div><span>累计签到</span><b id="checkinDays">0 天</b></div></div>
+    <div class="settings-row"><span><b>自动领取店铺利润</b><small>开启后利润自动进入钱包，不改变收益总额。</small></span><label class="switch"><input id="autoClaim" type="checkbox" checked><span></span></label></div>
+    <div class="settings-row"><span><b>游戏进度</b><small>存档保存在当前浏览器中。</small></span><button id="resetBtn" class="danger-btn">重开存档</button></div>
+  </section>
+  <footer>轻松经营，不用打卡上班。进度保存在当前浏览器。</footer>
 </main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script defer src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 </body></html>
