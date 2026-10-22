@@ -34,15 +34,21 @@
   }
   async function remoteRequest(path, options) {
     const opts = options || {};
+    // sb_publishable_* 是新式 publishable key，不是 JWT。
+    // 只放在 apikey 请求头，不要把它作为 Bearer token 发送。
     const headers = Object.assign({
       apikey: config.supabaseAnonKey,
-      Authorization: "Bearer " + config.supabaseAnonKey,
       "Content-Type": "application/json"
     }, opts.headers || {});
     const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({}, opts, { headers }));
-    if (!response.ok) throw new Error("排行榜服务暂不可用");
+    if (!response.ok) {
+      let detail = "";
+      try { detail = await response.text(); } catch (_) {}
+      throw new Error("HTTP " + response.status + (detail ? ": " + detail.slice(0, 240) : ""));
+    }
     if (response.status === 204) return [];
-    return response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : [];
   }
   function renderRows(rows) {
     leaderboardList.innerHTML = "";
