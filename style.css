@@ -404,3 +404,10 @@ button {
  .collection-card { min-height:132px; padding:9px 3px; }
  .collection-avatar { width:60px; height:60px; }
 }
+
+
+/* 双排行榜切换 */
+.leaderboard-tabs { display:flex; gap:8px; margin:16px 0 10px; }
+.leaderboard-tab { flex:1; min-width:0; padding:11px 8px; border:1px solid #e6dfd3; border-radius:10px; background:#fff; color:#675d4e; font-size:13px; font-weight:600; cursor:pointer; }
+.leaderboard-tab.active { background:#2f5d50; border-color:#2f5d50; color:#fff; }
+.leaderboard-tab:focus-visible { outline:2px solid #d5a84c; outline-offset:2px; }
