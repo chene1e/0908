@@ -5,3 +5,16 @@
 .ranking-panel{margin-top:18px;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:18px}
 .ranking-panel h2{font-size:17px;margin:0 0 4px}.ranking-panel p{font-size:12px;color:var(--muted);margin:0 0 10px}
 .ranking-list{padding-left:28px;margin:0}.ranking-list li{padding:7px 2px;border-bottom:1px solid var(--line);font-size:13px}.ranking-list li:last-child{border-bottom:0}.ranking-score{font-weight:800;float:right}
+
+/* 游戏封面与一分钟限时模式 */
+.game-cover{text-align:center;padding:28px 0 8px}
+.game-cover h1{font-size:clamp(36px,9vw,52px);letter-spacing:-.05em;margin:8px 0 10px}
+.cover-subtitle{color:var(--muted);font-size:14px;line-height:1.6;max-width:360px;margin:0 auto 18px}
+.cover-rules{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 auto 20px}
+.cover-rules span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:12px}
+.start-game{display:block;width:min(100%,320px);margin:0 auto 18px;border:0;border-radius:13px;background:var(--accent);color:#fff;font-size:16px;font-weight:800;padding:15px 22px;box-shadow:0 5px 0 #a9442c;transition:transform .12s,box-shadow .12s}
+.start-game:active{transform:translateY(3px);box-shadow:0 2px 0 #a9442c}
+.cover-ranking{margin-top:24px;text-align:left}
+.game-area .hero{padding-top:8px}
+.scorebar>div.time-low{border-color:var(--accent);color:var(--accent);background:#fff0e9}
+.scorebar>div.time-low strong{color:var(--accent)}
