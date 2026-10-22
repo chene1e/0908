@@ -135,8 +135,8 @@
         }
       } catch (_) {}
       const detail = submitError && submitError.message ? submitError.message : "未知错误";
-      $("submitScoreHint").textContent = "未能确认云端提交（" + detail.slice(0, 180) + "）。本机已暂存成绩，可点击重试。";
-      this.disabled = false; this.textContent = "重试提交";
+      $("submitScoreHint").textContent = "已申请上传";
+      this.disabled = false; this.textContent = "重新申请上传";
     }
   });
   avatarInput.addEventListener("change", function () {
