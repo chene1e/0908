@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>群友打工模拟器 · 兄弟姐妹全上岸游戏库</title>
+<link rel="stylesheet" href="worker.css?v=20261022-v1">
+<script defer src="config.js?v=20261022-stop2"></script>
+<script defer src="worker.js?v=20261022-v1"></script>
+</head>
+<body>
+<main class="worker-app">
+<a class="back-link" href="index.html">← 返回游戏库</a>
+<header class="hero">
+  <div class="eyebrow">PIXEL FRIENDS · WORK & GROW</div>
+  <h1>群友打工模拟器</h1>
+  <p>打工赚金币，升级工作台，努力成为群友首富！</p>
+</header>
+<section class="profile panel">
+  <div class="avatar" id="workerAvatar">🧑‍💻</div>
+  <div class="profile-main">
+    <label for="workerName">你的群昵称</label>
+    <div class="name-row"><input id="workerName" maxlength="40" placeholder="输入你的群昵称"><button id="saveName" class="small-btn">保存</button></div>
+    <p id="rankTitle" class="rank-title">实习群友</p>
+  </div>
+</section>
+<section class="stats">
+  <div class="stat panel"><span>钱包余额</span><strong id="coins">0</strong><small>🪙 金币</small></div>
+  <div class="stat panel"><span>累计收入</span><strong id="lifetime">0</strong><small>💰 已赚金币</small></div>
+  <div class="stat panel"><span>体力</span><strong id="energy">100/100</strong><small id="energyHint">休息一下会恢复</small></div>
+</section>
+<section class="work-card panel">
+  <div class="section-heading"><div><span class="eyebrow">DAILY SHIFT</span><h2>今天干点啥？</h2></div><span class="badge" id="workLevel">工作台 Lv.1</span></div>
+  <div class="job-list">
+    <button class="job" data-job="coffee"><span class="job-icon">☕</span><span class="job-copy"><b>咖啡店打工</b><small>轻松赚金币 · 消耗 8 体力</small></span><span class="job-pay">+<b id="coffeePay">12</b> 🪙</span></button>
+    <button class="job" data-job="delivery"><span class="job-icon">🛵</span><span class="job-copy"><b>外卖冲刺</b><small>收入更高 · 消耗 18 体力</small></span><span class="job-pay">+<b id="deliveryPay">30</b> 🪙</span></button>
+    <button class="job" data-job="coding"><span class="job-icon">💻</span><span class="job-copy"><b>紧急修 Bug</b><small>高薪项目 · 消耗 30 体力</small></span><span class="job-pay">+<b id="codingPay">55</b> 🪙</span></button>
+  </div>
+  <p id="workStatus" class="status" role="status" aria-live="polite">选择一份工作，开始今天的奋斗。</p>
+  <div class="actions"><button id="restBtn" class="secondary">🛋️ 摸鱼休息 +35 体力</button><button id="dailyBtn" class="secondary">🎁 领取今日补贴</button></div>
+</section>
+<section class="shop panel">
+  <div class="section-heading"><div><span class="eyebrow">UPGRADE</span><h2>投资自己</h2></div><span class="badge">永久生效</span></div>
+  <div class="upgrade-row"><div class="upgrade-icon">🧰</div><div class="upgrade-copy"><b>升级工作装备</b><small>每级工作收入 +20%</small><small id="upgradeLevel">当前等级：Lv.1</small></div><button id="upgradeBtn" class="buy-btn">升级 · 100 🪙</button></div>
+  <div class="upgrade-row"><div class="upgrade-icon">🥤</div><div class="upgrade-copy"><b>购买能量饮料</b><small>立刻恢复 40 体力</small><small>最多恢复到 100</small></div><button id="drinkBtn" class="buy-btn">购买 · 45 🪙</button></div>
+</section>
+<section class="log panel"><div class="section-heading"><h2>📒 打工日记</h2><button id="resetBtn" class="text-btn">重开存档</button></div><ol id="logList"><li>你的打工生活开始了！</li></ol></section>
+<footer>所有进度保存在当前浏览器 · 劳逸结合，别忘了休息</footer>
+</main>
+</body></html>
