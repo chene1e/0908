@@ -690,7 +690,7 @@ button {
 .ad-modal-close {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   width: 34px;
   height: 34px;
   border: 1px solid rgba(255,255,255,.18);
