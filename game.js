@@ -202,8 +202,16 @@ renderProgress();
 // 趣味系统：本地保存的图鉴、每日任务、随机事件
 // =============================================
 function loadProgress() {
-    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{"levels":[],"rares":[]}'); }
-    catch (_) { return { levels: [], rares: [] }; }
+    try {
+        const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+        return {
+            levels: Array.isArray(data.levels) ? data.levels : [],
+            rares: Array.isArray(data.rares) ? data.rares : [],
+            achievements: Array.isArray(data.achievements) ? data.achievements : [],
+            totalMerges: Number(data.totalMerges) || 0,
+            totalDrops: Number(data.totalDrops) || 0
+        };
+    } catch (_) { return { levels: [], rares: [], achievements: [], totalMerges: 0, totalDrops: 0 }; }
 }
 function loadDaily() {
     const today = new Date().toLocaleDateString("sv-SE");
@@ -239,14 +247,47 @@ function discoverRare(level) {
 }
 function updateDailyProgress() {
     dailyData.merges = (dailyData.merges || 0) + 1;
+    progressData.totalMerges = (progressData.totalMerges || 0) + 1;
     saveDaily();
+    checkAchievements();
 }
-function updateProgressUI() { renderProgress(); }
+function checkAchievements() {
+    const achievements = [
+        ["first-merge", (progressData.totalMerges || 0) >= 1, "初次合成"],
+        ["merge-50", (progressData.totalMerges || 0) >= 50, "合成老手"],
+        ["all-levels", progressData.levels.length >= 9, "图鉴收藏家"],
+        ["first-rare", progressData.rares.length >= 1, "欧皇认证"]
+    ];
+    achievements.forEach(([id, condition, title]) => {
+        if (condition && !progressData.achievements.includes(id)) {
+            progressData.achievements.push(id);
+            showToast("🏅 成就解锁：" + title);
+        }
+    });
+    saveProgress();
+}
+function updateProgressUI() { checkAchievements(); renderProgress(); }
 function renderProgress() {
     const collection = document.getElementById("collectionSummary");
     const missions = document.getElementById("dailyMissions");
     const collectionGrid = document.getElementById("collectionGrid");
+    const achievementList = document.getElementById("achievementList");
     if (collection) collection.textContent = "已解锁 " + progressData.levels.length + "/9 · 闪光发现 " + progressData.rares.length + "/9";
+    if (achievementList) {
+        const badges = [
+            ["first-merge", "🥇 初次合成"],
+            ["merge-50", "🔥 合成老手"],
+            ["all-levels", "📚 图鉴收藏家"],
+            ["first-rare", "✨ 欧皇认证"]
+        ];
+        achievementList.innerHTML = "";
+        badges.forEach(([id, label]) => {
+            const badge = document.createElement("span");
+            badge.className = "achievement-badge" + (progressData.achievements.includes(id) ? " earned" : "");
+            badge.textContent = label;
+            achievementList.appendChild(badge);
+        });
+    }
     if (missions) {
         const tasks = [
             ["投放 10 个群友", dailyData.drops || 0, 10],
@@ -1058,6 +1099,8 @@ function dropBall() {
         ball
     );
     roundDrops++;
+    progressData.totalDrops = (progressData.totalDrops || 0) + 1;
+    saveProgress();
     dailyData.drops = (dailyData.drops || 0) + 1;
     saveDaily();
     discoverLevel(nextLevel);
