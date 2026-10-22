@@ -91,6 +91,9 @@ const pauseBtn =
 const restartBtn =
     document.getElementById("restartBtn");
 
+const stopBtn =
+    document.getElementById("stopBtn");
+
 const message =
     document.getElementById("message");
 
@@ -1364,6 +1367,31 @@ function endGame() {
 
 
 // =============================================
+// 主动结束本局，并允许提交当前分数
+// =============================================
+
+function stopGameManually() {
+    if (!started || gameOver || won) return;
+
+    gameOver = true;
+    started = false;
+    paused = false;
+    pauseBtn.disabled = true;
+    pauseBtn.textContent = "暂停游戏";
+    Runner.stop(runner);
+
+    if (window.finishAndOfferScore) {
+        window.finishAndOfferScore(score);
+    }
+
+    showMessage(
+        "本局已结束",
+        `你主动结束了本局，当前得分：${score}。可以提交成绩到排行榜，也可以再玩一次。`
+    );
+}
+
+
+// =============================================
 // 二十一、开始或重新开始游戏
 // =============================================
 
@@ -1631,6 +1659,14 @@ pauseBtn.addEventListener(
     "click",
 
     togglePause
+
+);
+
+stopBtn.addEventListener(
+
+    "click",
+
+    stopGameManually
 
 );
 
