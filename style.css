@@ -720,3 +720,16 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .ad-modal-card { animation: none; }
 }
+
+
+/* Force anniversary popup close button to the card's upper-left corner. */
+#adModal .ad-modal-card > #closeAdModalBtn {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  right: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  inset-inline-start: 8px !important;
+  inset-inline-end: auto !important;
+}
