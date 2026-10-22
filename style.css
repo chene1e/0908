@@ -324,3 +324,8 @@ button {
 #gameView header{padding-top:8px}
 #gameBackBtn{margin-bottom:8px}
 @media(max-width:400px){.cover-screen,.panel-view{padding:20px 14px}.cover-screen h1{font-size:28px}.profile-card{padding:16px}}
+
+
+/* 主动结束本局按钮 */
+.buttons { flex-wrap: wrap; }
+#stopBtn { flex: 1 1 100%; background: #b84b42; }
