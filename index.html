@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>主题合成大群友</title>
-<link rel="stylesheet" href="style.css?v=20261022-clean1">
+<link rel="stylesheet" href="style.css?v=20261022-speedrank1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
@@ -37,6 +37,10 @@
     <button id="leaderboardBackBtn" class="back-button">← 返回封面</button>
     <p class="cover-kicker">GLOBAL RANKING</p>
     <h2>全球排行榜</h2>
+    <div class="leaderboard-tabs" role="tablist" aria-label="排行榜类型">
+      <button id="scoreLeaderboardTab" class="leaderboard-tab active" type="button" aria-pressed="true">🏆 最高分榜</button>
+      <button id="timeLeaderboardTab" class="leaderboard-tab" type="button" aria-pressed="false">⚡ Level 9 最快榜</button>
+    </div>
     <p class="leaderboard-note" id="leaderboardStatus">正在读取排行榜…</p>
     <ol id="leaderboardList" class="leaderboard-list"></ol>
     <button id="leaderboardRefreshBtn" class="primary-button">刷新排行榜</button>
@@ -44,7 +48,6 @@
 
   <section id="gameView" class="hidden">
     <button id="gameBackBtn" class="back-button">← 返回封面</button>
-    <button id="stopBtnTop" class="stop-button stop-button-top" type="button">⏹ 结束本局并提交当前分数</button>
     <header><h1>主题合成大群友</h1><p>合成第九级，挑战成功！</p></header>
     <section class="info-panel">
       <div class="info-card"><span>当前分数</span><strong id="score">0</strong></div>
@@ -93,7 +96,7 @@
   </section>
 </div>
 <script src="config.js?v=20261022-stop1"></script>
-<script src="game.js?v=20261022-clean1"></script>
-<script src="lobby.js?v=20261022-requestack1"></script>
+<script src="game.js?v=20261022-speedrank1"></script>
+<script src="lobby.js?v=20261022-speedrank1"></script>
 </body>
 </html>
