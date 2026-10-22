@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f2e9">
+<title>群友消消乐 · 排行榜</title>
+<link rel="stylesheet" href="match.css?v=20261022-fix2">
+<style>
+.ranking-page h1{font-size:clamp(30px,8vw,42px);margin:22px 0 6px;letter-spacing:-.04em}
+.ranking-page .intro{font-size:13px;color:var(--muted);line-height:1.6}
+.ranking-page .ranking-panel{margin-top:22px}
+.ranking-page .ranking-list li{padding:12px 4px;font-size:14px}
+.ranking-page .ranking-score{margin-left:10px}
+.ranking-actions{display:grid;gap:10px;margin-top:20px}
+.ranking-actions a{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:13px 18px;font-weight:800}
+.ranking-primary{background:var(--accent);color:white}
+.ranking-secondary{border:1px solid var(--line);color:var(--ink);background:var(--card)}
+</style>
+</head>
+<body>
+<main class="match-app ranking-page">
+  <a class="back-link" href="match.html?v=20261022-fix2">← 返回群友消消乐</a>
+  <p class="eyebrow">GROUP FRIENDS MATCH</p>
+  <h1>🏆 本机排行榜</h1>
+  <p class="intro">按分数从高到低排列。成绩保存在当前浏览器中，不同设备或浏览器之间不会自动同步。</p>
+  <section class="ranking-panel" aria-labelledby="rankingTitle">
+    <h2 id="rankingTitle">最高分榜</h2>
+    <p>最多显示前 10 名</p>
+    <ol id="rankingList" class="ranking-list" aria-live="polite"></ol>
+  </section>
+  <div class="ranking-actions">
+    <a class="ranking-primary" href="match.html?v=20261022-fix2">开始挑战</a>
+    <a class="ranking-secondary" href="index.html">返回游戏库首页</a>
+  </div>
+</main>
+<script>
+(function(){
+ const KEY='groupFriendsMatchRankingV1',list=document.getElementById('rankingList');
+ let rows=[];
+ try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');if(Array.isArray(data))rows=data;}catch(_){}
+ rows.sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)).slice(0,10);
+ if(!rows.length){const li=document.createElement('li');li.textContent='还没有成绩，开始游戏成为第一名吧！';list.appendChild(li);return;}
+ rows.forEach((row,i)=>{
+  const li=document.createElement('li');
+  li.appendChild(document.createTextNode((i+1)+'. '+String(row.name||'神秘群友')+' · '+String(row.date||'')+' '));
+  const score=document.createElement('span');score.className='ranking-score';score.textContent=(Number(row.score)||0).toLocaleString()+' 分';
+  li.appendChild(score);list.appendChild(li);
+ });
+})();
+</script>
+</body>
+</html>
