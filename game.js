@@ -770,7 +770,7 @@ function drawGame() {
     ctx.fillText(
 
         started && !paused && !gameOver
-            ? "移动鼠标选择位置，点击放下"
+            ? "点击任意位置投放球球 · 越靠近同级越容易合成"
             : "点击开始游戏",
 
         GAME_WIDTH / 2,
@@ -1773,10 +1773,10 @@ function bindInputEvents() {
 
         "click",
 
-        function () {
-
+        function (event) {
+            // 以点击位置作为投放位置，不需要先移动鼠标。
+            updatePointer(event.clientX, event.clientY);
             dropBall();
-
         }
 
     );
@@ -1816,11 +1816,11 @@ function bindInputEvents() {
         "touchend",
 
         function (event) {
-
+            // 使用手指离开屏幕的位置投放，点按即可，不必先滑动。
+            const touch = event.changedTouches && event.changedTouches[0];
+            if (touch) updatePointer(touch.clientX, touch.clientY);
             dropBall();
-
         },
-
         {
             passive: false
         }
