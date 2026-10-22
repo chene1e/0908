@@ -91,9 +91,6 @@ const pauseBtn =
 const restartBtn =
     document.getElementById("restartBtn");
 
-const stopBtn =
-    document.getElementById("stopBtnTop");
-
 const stopBtnBottom =
     document.getElementById("stopBtnBottom");
 
@@ -153,6 +150,8 @@ let canDrop = true;
 let lastDropTime = 0;
 
 let gameOverTimer = 0;
+let gameStartedAt = 0;
+let level9ElapsedMs = null;
 
 // 正在合成的圆形ID
 const mergingBodies = new Set();
@@ -1499,13 +1498,18 @@ function showMessage(title, text) {
 
 
 // =============================================
+function formatElapsedTime(ms) {
+    if (!Number.isFinite(ms) || ms < 0) return "—";
+    return (ms / 1000).toFixed(2) + " 秒";
+}
+
 // 十九、获胜
 // =============================================
 
 function winGame() {
 
-    if (window.finishAndOfferScore) window.finishAndOfferScore(score);
-
+    if (gameOver || won) return;
+    level9ElapsedMs = Math.max(0, Date.now() - gameStartedAt);
     won = true;
 
     gameOver = true;
@@ -1516,11 +1520,13 @@ function winGame() {
 
     pauseBtn.textContent = "暂停游戏";
 
+    if (window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, true);
+
     showMessage(
 
         "恭喜你，挑战成功！",
 
-        `你成功合成了第九级！最终得分：${score}`
+        `你成功合成了第九级！用时：${formatElapsedTime(level9ElapsedMs)}，最终得分：${score}`
 
     );
 
@@ -1533,20 +1539,15 @@ function winGame() {
 
 function endGame() {
 
-    if (window.finishAndOfferScore) window.finishAndOfferScore(score);
-
-    if (
-        gameOver ||
-        won
-    ) {
-        return;
-    }
+    if (gameOver || won) return;
 
     gameOver = true;
 
     started = false;
 
     pauseBtn.disabled = true;
+
+    if (window.finishAndOfferScore) window.finishAndOfferScore(score, null, false);
 
     showMessage(
 
@@ -1574,7 +1575,7 @@ function stopGameManually() {
     Runner.stop(runner);
 
     if (window.finishAndOfferScore) {
-        window.finishAndOfferScore(score);
+        window.finishAndOfferScore(score, null, false);
     }
 
     showMessage(
@@ -1594,8 +1595,10 @@ function startGame() {
     createGame();
 
 
-    // 重置分数
+    // 重置分数与通关计时
     score = 0;
+    gameStartedAt = Date.now();
+    level9ElapsedMs = null;
 
     scoreElement.textContent = "0";
 
@@ -1866,21 +1869,7 @@ pauseBtn.addEventListener(
 
 );
 
-stopBtn.addEventListener(
-
-    "click",
-
-    stopGameManually
-
-);
-
-stopBtnBottom.addEventListener(
-
-    "click",
-
-    stopGameManually
-
-);
+stopBtnBottom.addEventListener("click", stopGameManually);
 
 const collectionOpenBtn = document.getElementById("collectionOpenBtn");
 const collectionBackBtn = document.getElementById("collectionBackBtn");
