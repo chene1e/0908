@@ -28,6 +28,7 @@
     </div>
     <div class="cover-actions">
       <button id="coverStartBtn" class="primary-button">开始游戏</button>
+      <button id="coverCollectionBtn" class="outline-button" type="button">📚 群友图鉴</button>
       <button id="coverLeaderboardBtn" class="outline-button">全球排行榜</button>
     </div>
     <p class="cover-footnote">每一局成绩都会单独记录，挑战自己，也挑战群友。</p>
@@ -54,7 +55,7 @@
       <div class="info-card"><span>历史最高分</span><strong id="bestScore">0</strong></div>
       <div class="info-card"><span>下一个照片</span><canvas id="nextCanvas" width="80" height="80"></canvas></div>
     </section>
-    <div class="game-shortcuts">
+    <div class="game-shortcuts hidden">
       <button id="collectionOpenBtn" class="outline-button" type="button">📚 群友图鉴 <span id="collectionCount">0/9</span></button>
     </div>
     <div class="game-wrapper">
@@ -88,7 +89,7 @@
   </section>
 
   <section id="collectionView" class="panel-view hidden">
-    <button id="collectionBackBtn" class="back-button" type="button">← 返回游戏</button>
+    <button id="collectionBackBtn" class="back-button" type="button">← 返回封面</button>
     <p class="cover-kicker">FRIEND COLLECTION</p>
     <h2>群友图鉴</h2>
     <p id="collectionPageSummary" class="collection-page-summary">合成新等级的群友，逐个点亮图鉴！</p>
@@ -96,7 +97,7 @@
   </section>
 </div>
 <script src="config.js?v=20261022-stop1"></script>
-<script src="game.js?v=20261022-speedrank1"></script>
+<script src="game.js?v=20261022-collectioncover1"></script>
 <script src="lobby.js?v=20261022-avatarfix1"></script>
 </body>
 </html>
