@@ -1,118 +1,85 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>照片合成大挑战</title>
-
-    <!-- 游戏界面样式 -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- 游戏物理引擎 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主题合成大群友</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
-
 <body>
-
-    <div class="container">
-
-        <!-- 游戏标题 -->
-        <header>
-            <h1>照片合成大挑战</h1>
-            <p>合成第九级，挑战成功！</p >
-        </header>
-
-        <!-- 分数信息 -->
-        <section class="info-panel">
-
-            <div class="info-card">
-                <span>当前分数</span>
-                <strong id="score">0</strong>
-            </div>
-
-            <div class="info-card">
-                <span>历史最高分</span>
-                <strong id="bestScore">0</strong>
-            </div>
-
-            <div class="info-card">
-                <span>下一个照片</span>
-                <canvas
-                    id="nextCanvas"
-                    width="80"
-                    height="80"
-                ></canvas>
-            </div>
-
-        </section>
-
-        <!-- 游戏区域 -->
-        <div class="game-wrapper">
-
-            <div id="game-container"></div>
-
-            <!-- 游戏结束或获胜提示 -->
-            <div id="message" class="message hidden">
-
-                <h2 id="message-title">游戏结束</h2>
-
-                <p id="message-text"></p >
-
-                <button id="message-restart">
-                    再玩一次
-                </button>
-
-            </div>
-
-        </div>
-
-        <!-- 游戏控制按钮 -->
-        <div class="buttons">
-
-            <button id="startBtn">
-                开始游戏
-            </button>
-
-            <button id="pauseBtn" disabled>
-                暂停游戏
-            </button>
-
-            <button id="restartBtn">
-                重新开始
-            </button>
-
-        </div>
-
-        <!-- 游戏说明 -->
-        <div class="instructions">
-
-            <h3>游戏规则</h3>
-
-            <p>1. 移动鼠标，控制照片左右位置。</p >
-
-            <p>2. 点击鼠标，将照片放入游戏区域。</p >
-
-            <p>3. 两个相同等级的圆形碰撞后自动合成。</p >
-
-            <p>4. 每次合成都会获得分数。</p >
-
-            <p>5. 合成第九级，即可获胜。</p >
-
-            <p>6. 圆形堆得太高，游戏就会结束。</p >
-
-        </div>
-
+<div class="container">
+  <section id="cover" class="cover-screen">
+    <div class="cover-mark">🎮</div>
+    <p class="cover-kicker">群友专属 · 合成挑战</p>
+    <h1>主题合成大群友</h1>
+    <p class="cover-subtitle">看看谁才是合成王者！</p>
+    <div class="profile-card">
+      <div class="avatar-preview-wrap">
+        <img id="avatarPreview" alt="玩家头像" class="avatar-preview" hidden>
+        <div id="avatarFallback" class="avatar-fallback">👤</div>
+      </div>
+      <label class="upload-avatar" for="avatarInput">上传头像</label>
+      <input id="avatarInput" type="file" accept="image/*" hidden>
+      <label class="profile-label" for="playerName">你的群昵称</label>
+      <input id="playerName" class="name-input" maxlength="20" placeholder="输入名字再来挑战" autocomplete="nickname">
+      <button id="saveProfileBtn" class="secondary-button">保存玩家资料</button>
+      <p id="profileHint" class="profile-hint">设置头像和名字，让大家认出你。</p>
     </div>
+    <div class="cover-actions">
+      <button id="coverStartBtn" class="primary-button">开始游戏</button>
+      <button id="coverLeaderboardBtn" class="outline-button">全球排行榜</button>
+    </div>
+    <p class="cover-footnote">每一局成绩都会单独记录，挑战自己，也挑战群友。</p>
+  </section>
 
-    <!-- 游戏逻辑 -->
-    <script src="game.js"></script>
+  <section id="leaderboardView" class="panel-view hidden">
+    <button id="leaderboardBackBtn" class="back-button">← 返回封面</button>
+    <p class="cover-kicker">GLOBAL RANKING</p>
+    <h2>全球排行榜</h2>
+    <p class="leaderboard-note" id="leaderboardStatus">正在读取排行榜…</p>
+    <ol id="leaderboardList" class="leaderboard-list"></ol>
+    <button id="leaderboardRefreshBtn" class="primary-button">刷新排行榜</button>
+  </section>
 
+  <section id="gameView" class="hidden">
+    <button id="gameBackBtn" class="back-button">← 返回封面</button>
+    <header><h1>主题合成大群友</h1><p>合成第九级，挑战成功！</p></header>
+    <section class="info-panel">
+      <div class="info-card"><span>当前分数</span><strong id="score">0</strong></div>
+      <div class="info-card"><span>历史最高分</span><strong id="bestScore">0</strong></div>
+      <div class="info-card"><span>下一个照片</span><canvas id="nextCanvas" width="80" height="80"></canvas></div>
+    </section>
+    <div class="game-wrapper">
+      <div id="game-container"></div>
+      <div id="message" class="message hidden">
+        <h2 id="message-title">游戏结束</h2>
+        <p id="message-text"></p>
+        <div id="scoreSubmitArea" class="score-submit-area">
+          <p id="submitScoreHint">本局成绩将被记录。</p>
+          <button id="submitScoreBtn" class="secondary-button">提交本局成绩</button>
+        </div>
+        <button id="message-restart">再玩一次</button>
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="startBtn">开始游戏</button>
+      <button id="pauseBtn" disabled>暂停游戏</button>
+      <button id="restartBtn">重新开始</button>
+    </div>
+    <div class="instructions">
+      <h3>游戏规则</h3>
+      <p>1. 移动鼠标或手指，控制照片左右位置。</p>
+      <p>2. 点击或松开手指，将照片放入游戏区域。</p>
+      <p>3. 两个相同等级的圆形碰撞后自动合成。</p>
+      <p>4. 每次合成都会获得分数。</p>
+      <p>5. 合成第九级，即可获胜。</p>
+      <p>6. 圆形堆得太高，游戏就会结束。</p>
+    </div>
+  </section>
+</div>
+<script src="config.js"></script>
+<script src="game.js"></script>
+<script src="lobby.js"></script>
 </body>
-
 </html>
