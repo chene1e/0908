@@ -44,6 +44,11 @@
     </div>
     <p class="leaderboard-note" id="leaderboardStatus">正在读取排行榜…</p>
     <ol id="leaderboardList" class="leaderboard-list"></ol>
+    <div class="leaderboard-pagination">
+      <button id="leaderboardPrevBtn" class="outline-button" type="button" disabled>上一页</button>
+      <span id="leaderboardPageInfo" aria-live="polite">第 1 / 1 页 · 共 0 条</span>
+      <button id="leaderboardNextBtn" class="outline-button" type="button" disabled>下一页</button>
+    </div>
     <button id="leaderboardRefreshBtn" class="primary-button">刷新排行榜</button>
   </section>
 
@@ -98,6 +103,6 @@
 </div>
 <script src="config.js?v=20261022-stop1"></script>
 <script src="game.js?v=20261022-collectioncover1"></script>
-<script src="lobby.js?v=20261022-avatarfix1"></script>
+<script src="lobby.js?v=20261022-pagination1"></script>
 </body>
 </html>
