@@ -1892,6 +1892,8 @@ if (collectionBackBtn && collectionView && gameView) {
 }
 
 
+window.renderProgress = renderProgress;
+
 // =============================================
 // 二十六、初始化游戏
 // =============================================
