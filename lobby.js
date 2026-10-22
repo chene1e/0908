@@ -18,8 +18,15 @@
   function saveProfile() {
     const name = nameInput.value.trim();
     if (!name) { profileHint.textContent = "先输入一个群昵称吧。"; nameInput.focus(); return false; }
-    try { localStorage.setItem("bigGroupProfile", JSON.stringify({ name, avatar: avatarData })); } catch (_) {}
-    profileHint.textContent = "资料已保存！开局冲分吧。";
+    const saved = readProfile();
+    // 未重新选择头像时保留之前保存的头像，避免被空字符串覆盖。
+    const avatar = avatarData || saved.avatar || "";
+    try { localStorage.setItem("bigGroupProfile", JSON.stringify({ name, avatar })); } catch (_) {
+      profileHint.textContent = "资料保存失败，浏览器存储空间可能不足，请换一张更小的头像。";
+      return false;
+    }
+    avatarData = avatar;
+    profileHint.textContent = avatar ? "资料和头像已保存！开局冲分吧。" : "昵称已保存。上传头像后，头像才会显示在排行榜。";
     return true;
   }
   function getProfile() {
@@ -74,6 +81,7 @@
       const li = document.createElement("li");
       const rank = document.createElement("span"); rank.className = "rank-number"; rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index + 1);
       const img = document.createElement("img"); img.className = "rank-avatar"; img.alt = ""; img.src = row.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
+      img.addEventListener("error", function () { this.onerror = null; this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E"; });
       const info = document.createElement("div"); info.className = "rank-info";
       const name = document.createElement("div"); name.className = "rank-name"; name.textContent = row.name || "神秘群友";
       const time = document.createElement("div"); time.className = "rank-time"; time.textContent = row.created_at ? new Date(row.created_at).toLocaleString() : "本机记录";
@@ -168,10 +176,30 @@
   avatarInput.addEventListener("change", function () {
     const file = this.files && this.files[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { profileHint.textContent = "请选择图片文件。"; return; }
-    if (file.size > 1500000) { profileHint.textContent = "头像请控制在 1.5MB 以内。"; this.value = ""; return; }
+    if (!file.type.startsWith("image/")) { profileHint.textContent = "请选择图片文件。"; this.value = ""; return; }
     const reader = new FileReader();
-    reader.onload = function () { avatarData = reader.result; avatarPreview.src = avatarData; avatarPreview.hidden = false; avatarFallback.classList.add("hidden"); profileHint.textContent = "头像已选好，记得保存资料。"; };
+    reader.onerror = function () { profileHint.textContent = "头像读取失败，请重新选择图片。"; };
+    reader.onload = function () {
+      const source = new Image();
+      source.onerror = function () { profileHint.textContent = "图片无法识别，请换一张图片。"; };
+      source.onload = function () {
+        // 压缩成小尺寸 JPEG，避免头像过大导致数据库拒收或本地资料存储失败。
+        const canvas = document.createElement("canvas");
+        const maxSide = 256;
+        const scale = Math.min(1, maxSide / Math.max(source.naturalWidth, source.naturalHeight));
+        canvas.width = Math.max(1, Math.round(source.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+        avatarData = canvas.toDataURL("image/jpeg", 0.78);
+        avatarPreview.src = avatarData;
+        avatarPreview.hidden = false;
+        avatarFallback.classList.add("hidden");
+        profileHint.textContent = "头像已读取并压缩，点击“保存玩家资料”后再提交成绩。";
+      };
+      source.src = reader.result;
+    };
     reader.readAsDataURL(file);
   });
   $("saveProfileBtn").addEventListener("click", saveProfile);
