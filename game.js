@@ -1315,6 +1315,7 @@ function processMergeQueue() {
             showToast("⚡ 双倍时间！得分翻倍");
         }
         updateScore(earned);
+        discoverLevel(item.level);
         discoverLevel(newLevel);
         if (isRare) discoverRare(newLevel);
         updateDailyProgress();
