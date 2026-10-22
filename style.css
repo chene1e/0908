@@ -335,3 +335,41 @@ button {
 .stop-button { background: #c9362b; color: #fff; font-weight: 800; border: 2px solid #a8241b; box-shadow: 0 3px 0 #8e1d16; }
 .stop-button-top { display: block; width: 100%; margin: 0 0 14px; padding: 15px 12px; font-size: 16px; }
 .stop-button-bottom { flex: 1 1 100%; }
+
+
+/* 趣味升级：任务、图鉴、连击与事件反馈 */
+.fun-panel {
+    margin: 0 0 15px;
+    padding: 15px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fffdf5, #fff1d6);
+    border: 1px solid #f0d8a7;
+    box-shadow: 0 4px 14px #8b5b1610;
+}
+.fun-panel-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.fun-panel-head strong { color:#68451b; font-size:16px; }
+.fun-panel-head p { margin:4px 0 0; color:#9b8465; font-size:12px; }
+.mini-button { width:auto; padding:9px 11px; background:#fff; color:#93621c; border:1px solid #e8ca8c; font-size:12px; white-space:nowrap; }
+.daily-missions { display:grid; gap:7px; }
+.mission-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 11px; border-radius:9px; background:#fff; color:#655743; font-size:13px; }
+.mission-row strong { color:#ad7927; font-size:12px; white-space:nowrap; }
+.mission-row.mission-done { background:#eaf7e8; color:#3f7c3e; }
+.mission-row.mission-done strong { color:#3f7c3e; }
+.collection-summary { margin:10px 0 0; font-size:12px; color:#8d744f; }
+.collection-panel { margin-top:12px; padding-top:12px; border-top:1px dashed #e3c991; }
+.collection-panel h3 { margin:0 0 6px; color:#68451b; font-size:16px; }
+.collection-panel p { margin:0 0 10px; color:#8b7a61; font-size:12px; line-height:1.5; }
+.collection-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.collection-item { min-width:0; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; padding:10px 4px; border-radius:10px; background:#f3f0eb; color:#9a9285; font-size:11px; }
+.collection-item.unlocked { background:#fff; color:#65491f; border:1px solid #f0d9a9; }
+.collection-level { display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:#e5dfd5; font-weight:800; font-size:15px; }
+.collection-item.unlocked .collection-level { color:#fff; background:linear-gradient(135deg,#f4c75f,#d78d25); }
+.collection-item small { font-size:10px; color:#a18d6f; }
+.collection-item.unlocked small { color:#b07b28; }
+.game-toast { position:absolute; z-index:12; left:50%; top:18%; transform:translate(-50%,-8px); width:max-content; max-width:88%; padding:11px 15px; border-radius:999px; color:#fff; background:linear-gradient(135deg,#6f45c5,#d85b9f); font-size:13px; font-weight:800; text-align:center; box-shadow:0 5px 18px #48206445; opacity:0; pointer-events:none; transition:opacity .18s,transform .18s; }
+.game-toast.toast-show { opacity:1; transform:translate(-50%,0); }
+@media(max-width:400px) {
+ .fun-panel { padding:12px; }
+ .fun-panel-head { align-items:flex-start; }
+ .collection-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
