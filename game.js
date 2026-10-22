@@ -1308,6 +1308,8 @@ function showMessage(title, text) {
 
 function winGame() {
 
+    if (window.finishAndOfferScore) window.finishAndOfferScore(score);
+
     won = true;
 
     gameOver = true;
@@ -1334,6 +1336,8 @@ function winGame() {
 // =============================================
 
 function endGame() {
+
+    if (window.finishAndOfferScore) window.finishAndOfferScore(score);
 
     if (
         gameOver ||
