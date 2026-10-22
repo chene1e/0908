@@ -3,13 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>合成大群友</title>
+<title>兄弟姐妹全上岸游戏库</title>
 <link rel="stylesheet" href="style.css?v=20261022-gamepolish1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
 <div class="container">
-  <section id="cover" class="cover-screen">
+  <section id="libraryCover" class="cover-screen library-cover">
+    <div class="cover-mark">🎮</div>
+    <p class="cover-kicker">GROUP FRIENDS GAME HUB</p>
+    <h1>兄弟姐妹全上岸<br>游戏库</h1>
+    <p class="cover-subtitle">快乐开黑，轻松上岸。选一款游戏开始吧！</p>
+    <div class="game-library-list">
+      <button id="openMergeGameBtn" class="library-game-card" type="button">
+        <span class="library-game-icon">🫧</span>
+        <span class="library-game-copy">
+          <strong>合成大群友</strong>
+          <small>合成群友头像，冲击最终等级！</small>
+          <em>立即游玩 →</em>
+        </span>
+        <span class="library-game-arrow">›</span>
+      </button>
+      <button id="openMatchGameBtn" class="library-game-card development-card" type="button">
+        <span class="library-game-icon">🧩</span>
+        <span class="library-game-copy">
+          <strong>群友消消乐</strong>
+          <small>和群友一起消除闯关，敬请期待。</small>
+          <em>查看开发进度 →</em>
+        </span>
+        <span class="library-game-arrow">›</span>
+      </button>
+    </div>
+    <p class="cover-footnote">更多群友小游戏，持续上新中。</p>
+  </section>
+
+  <section id="developmentView" class="panel-view development-view hidden">
+    <button id="developmentBackBtn" class="back-button" type="button">← 返回游戏库</button>
+    <div class="development-illustration">🧩✨</div>
+    <p class="cover-kicker">COMING SOON</p>
+    <h2>群友消消乐</h2>
+    <p class="development-status">游戏正在开发中</p>
+    <p class="development-copy">策划正在快马加鞭，程序员也在努力敲代码！<br>敬请期待，马上就能和兄弟姐妹一起玩啦。</p>
+    <div class="development-progress"><span></span></div>
+    <p class="development-footnote">开发进度：努力制作中 · 上线时间待定</p>
+  </section>
+
+  <section id="cover" class="cover-screen hidden">
+    <button id="gameLibraryBackBtn" class="back-button library-back-button" type="button">← 返回游戏库</button>
     <div class="cover-mark">🎮</div>
     <p class="cover-kicker">群友专属 · 合成挑战</p>
     <h1>合成大群友</h1>
