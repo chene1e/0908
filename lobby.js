@@ -133,13 +133,25 @@
         // 不读取 avatar：历史头像可能是很大的 base64 字符串，是排行榜首屏慢的重要来源。
         // 排行榜用统一默认头像，显著减少传输量。
         const rankingQuery = rankingMode === "time"
-          ? "game_scores?select=name,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20"
-          : "game_scores?select=name,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
+          ? "game_scores?select=id,name,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20"
+          : "game_scores?select=id,name,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
         const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
         const timeout = controller ? setTimeout(() => controller.abort(), 8000) : null;
         let rows;
         try { rows = await remoteRequest(rankingQuery, controller ? { signal: controller.signal } : undefined); }
         finally { if (timeout) clearTimeout(timeout); }
+        // 先取轻量排名数据，再只读取当前页头像，避免一次下载所有历史 base64 头像拖慢排行榜。
+        const pageRows = rows.slice(0, rankingPageSize);
+        if (pageRows.length) {
+          try {
+            const ids = pageRows.map(row => row.id).filter(id => Number.isFinite(Number(id)));
+            if (ids.length) {
+              const avatarRows = await remoteRequest("game_scores?select=id,avatar&id=in.(" + ids.join(",") + ")");
+              const avatarById = new Map(avatarRows.map(item => [String(item.id), item.avatar || ""]));
+              rows = rows.map(row => Object.assign({}, row, { avatar: avatarById.get(String(row.id)) || "" }));
+            }
+          } catch (_) { /* 头像读取失败不应让成绩排行榜整体失效 */ }
+        }
         cachedLeaderboardRows = rows;
         writeRankingCache(rankingMode, rows);
         renderRows(rows, rankingMode);
@@ -213,7 +225,7 @@
         }
       } catch (_) {}
       const detail = submitError && submitError.message ? submitError.message : "未知错误";
-      $("submitScoreHint").textContent = "已申请上传";
+      $("submitScoreHint").textContent = "云端上传失败：" + detail.slice(0, 180) + "。成绩已保存在本机，请检查网络后重试。";
       this.disabled = false; this.textContent = "重新申请上传";
     }
   });
@@ -229,14 +241,15 @@
       source.onload = function () {
         // 压缩成小尺寸 JPEG，避免头像过大导致数据库拒收或本地资料存储失败。
         const canvas = document.createElement("canvas");
-        const maxSide = 256;
+        const maxSide = 128;
         const scale = Math.min(1, maxSide / Math.max(source.naturalWidth, source.naturalHeight));
         canvas.width = Math.max(1, Math.round(source.naturalWidth * scale));
         canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-        avatarData = canvas.toDataURL("image/jpeg", 0.78);
+        avatarData = canvas.toDataURL("image/jpeg", 0.55);
+        if (avatarData.length > 60000) avatarData = canvas.toDataURL("image/jpeg", 0.4);
         avatarPreview.src = avatarData;
         avatarPreview.hidden = false;
         avatarFallback.classList.add("hidden");
