@@ -11,6 +11,9 @@
   let currentElapsedMs = null;
   let currentRoundWon = false;
   let rankingMode = "score";
+  let rankingPage = 1;
+  let cachedLeaderboardRows = [];
+  const rankingPageSize = 10;
 
   function readProfile() {
     try { return JSON.parse(localStorage.getItem("bigGroupProfile") || "{}"); } catch (_) { return {}; }
@@ -70,6 +73,14 @@
     const sorted = eligible.slice().sort((a, b) => mode === "time"
       ? Number(a.elapsed_ms) - Number(b.elapsed_ms)
       : Number(b.score) - Number(a.score));
+    const pageCount = Math.max(1, Math.ceil(sorted.length / rankingPageSize));
+    rankingPage = Math.min(Math.max(1, rankingPage), pageCount);
+    const pageInfo = $("leaderboardPageInfo");
+    const prevBtn = $("leaderboardPrevBtn");
+    const nextBtn = $("leaderboardNextBtn");
+    if (pageInfo) pageInfo.textContent = "第 " + rankingPage + " / " + pageCount + " 页 · 共 " + sorted.length + " 条";
+    if (prevBtn) prevBtn.disabled = rankingPage <= 1;
+    if (nextBtn) nextBtn.disabled = rankingPage >= pageCount;
     if (!sorted.length) {
       const li = document.createElement("li");
       li.className = "empty-ranking";
@@ -77,7 +88,8 @@
       leaderboardList.appendChild(li);
       return;
     }
-    sorted.slice(0, 100).forEach((row, index) => {
+    sorted.slice((rankingPage - 1) * rankingPageSize, rankingPage * rankingPageSize).forEach((row, pageIndex) => {
+      const index = (rankingPage - 1) * rankingPageSize + pageIndex;
       const li = document.createElement("li");
       const rank = document.createElement("span"); rank.className = "rank-number"; rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index + 1);
       const img = document.createElement("img"); img.className = "rank-avatar"; img.alt = ""; img.src = row.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
@@ -100,20 +112,24 @@
     loadLeaderboard();
   }
   async function loadLeaderboard() {
+    rankingPage = 1;
     leaderboardStatus.textContent = "正在读取排行榜…";
     try {
       if (hasRemote()) {
         const rows = await remoteRequest("game_scores?select=name,avatar,score,elapsed_ms,created_at&order=created_at.desc&limit=1000");
+        cachedLeaderboardRows = rows;
         renderRows(rows, rankingMode);
         leaderboardStatus.textContent = rankingMode === "time"
           ? "在线全球榜 · 仅统计成功合成 Level 9 的成绩，时间越短排名越高"
           : "在线全球榜 · 每局成绩独立记录，分数越高排名越高";
       } else {
-        renderRows(localScores(), rankingMode);
+        cachedLeaderboardRows = localScores();
+        renderRows(cachedLeaderboardRows, rankingMode);
         leaderboardStatus.textContent = "当前为本机预览榜；配置在线数据库后，所有人才能共享成绩。";
       }
     } catch (_) {
-      renderRows(localScores(), rankingMode);
+      cachedLeaderboardRows = localScores();
+      renderRows(cachedLeaderboardRows, rankingMode);
       leaderboardStatus.textContent = "在线榜暂时无法连接，以下显示本机记录。";
     }
   }
@@ -228,6 +244,18 @@
   if (collectionBackBtn) collectionBackBtn.addEventListener("click", backToCover);
   $("gameBackBtn").addEventListener("click", backToCover);
   $("leaderboardRefreshBtn").addEventListener("click", loadLeaderboard);
+  $("leaderboardPrevBtn").addEventListener("click", function () {
+    if (rankingPage > 1) { rankingPage--; loadLeaderboardPage(); }
+  });
+  $("leaderboardNextBtn").addEventListener("click", function () {
+    const pageCount = Math.max(1, Math.ceil((rankingMode === "time"
+      ? cachedLeaderboardRows.filter(row => row.elapsed_ms !== null && row.elapsed_ms !== undefined && Number.isFinite(Number(row.elapsed_ms)))
+      : cachedLeaderboardRows).length / rankingPageSize));
+    if (rankingPage < pageCount) { rankingPage++; loadLeaderboardPage(); }
+  });
+  function loadLeaderboardPage() {
+    renderRows(cachedLeaderboardRows, rankingMode);
+  }
   $("scoreLeaderboardTab").addEventListener("click", function () { setRankingMode("score"); });
   $("timeLeaderboardTab").addEventListener("click", function () { setRankingMode("time"); });
   const saved = readProfile();
