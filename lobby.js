@@ -22,22 +22,7 @@
   function saveProfile() {
     const name = nameInput.value.trim();
     if (!name) { profileHint.textContent = "先输入一个群昵称吧。"; nameInput.focus(); return false; }
-    const adModal = $("adModal");
-  function closeAdModal() {
-    if (adModal) adModal.classList.add("hidden");
-  }
-  const closeAdModalBtn = $("closeAdModalBtn");
-  const confirmAdModalBtn = $("confirmAdModalBtn");
-  if (closeAdModalBtn) closeAdModalBtn.addEventListener("click", closeAdModal);
-  if (confirmAdModalBtn) confirmAdModalBtn.addEventListener("click", closeAdModal);
-  if (adModal) {
-    adModal.querySelectorAll('[data-close-ad="true"]').forEach(el => el.addEventListener("click", closeAdModal));
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeAdModal();
-    });
-  }
-
-  const saved = readProfile();
+    const saved = readProfile();
     // 未重新选择头像时保留之前保存的头像，避免被空字符串覆盖。
     const avatar = avatarData || saved.avatar || "";
     try { localStorage.setItem("bigGroupProfile", JSON.stringify({ name, avatar })); } catch (_) {
@@ -298,6 +283,21 @@
   }
   $("scoreLeaderboardTab").addEventListener("click", function () { setRankingMode("score"); });
   $("timeLeaderboardTab").addEventListener("click", function () { setRankingMode("time"); });
+  const adModal = $("adModal");
+  function closeAdModal() {
+    if (adModal) adModal.classList.add("hidden");
+  }
+  const closeAdModalBtn = $("closeAdModalBtn");
+  const confirmAdModalBtn = $("confirmAdModalBtn");
+  if (closeAdModalBtn) closeAdModalBtn.addEventListener("click", closeAdModal);
+  if (confirmAdModalBtn) confirmAdModalBtn.addEventListener("click", closeAdModal);
+  if (adModal) {
+    adModal.querySelectorAll('[data-close-ad="true"]').forEach(el => el.addEventListener("click", closeAdModal));
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeAdModal();
+    });
+  }
+
   const saved = readProfile();
   if (saved.name) nameInput.value = saved.name;
   if (saved.avatar) { avatarData = saved.avatar; avatarPreview.src = avatarData; avatarPreview.hidden = false; avatarFallback.classList.add("hidden"); }
