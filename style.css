@@ -422,3 +422,62 @@ button {
  .leaderboard-pagination { gap:7px; }
  .leaderboard-pagination .outline-button { padding:8px 9px; }
 }
+
+
+/* 游戏界面细节优化：清晰的状态卡片、画布和操作按钮 */
+#gameView {
+  padding: 14px;
+  border: 1px solid #eee5d7;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffdf8 0%, #f8f5ef 100%);
+  box-shadow: 0 8px 28px #49351a12;
+}
+#gameView > header { margin: 2px 0 14px; }
+#gameView > header h1 { color: #352719; letter-spacing: .5px; }
+#gameView > header p { color: #8a765b; }
+#gameView .info-panel { gap: 8px; }
+#gameView .info-card {
+  border: 1px solid #eee4d5;
+  border-radius: 14px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 3px 10px #4b35100a;
+  padding: 10px 5px;
+}
+#gameView .info-card span { color: #8d7c65; font-size: 11px; }
+#gameView .info-card strong { color: #49351f; font-size: 23px; }
+.game-wrapper {
+  border: 1px solid #e9dfcf;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px #49351a12;
+}
+#game-container canvas { cursor: crosshair; touch-action: none; }
+#gameView .buttons { gap: 8px; margin-top: 12px; }
+#gameView .buttons button {
+  min-height: 44px;
+  border-radius: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 0 #00000012;
+}
+#gameView #startBtn { background: #2f6655; }
+#gameView #pauseBtn { background: #d99a37; }
+#gameView #restartBtn { background: #82786b; }
+#gameView .stop-button-bottom {
+  min-height: 44px;
+  border: 0;
+  background: #b94c42;
+  box-shadow: 0 3px 0 #94382f;
+}
+#gameView .instructions {
+  border: 1px solid #eee4d5;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+#gameView .instructions h3 { color: #49351f; }
+#gameView .instructions p { margin: 5px 0; }
+@media(max-width:400px) {
+  #gameView { padding: 10px; border-radius: 16px; }
+  #gameView .info-card { padding: 9px 3px; }
+  #gameView .info-card strong { font-size: 20px; }
+  #gameView .buttons button { font-size: 12px; }
+}
