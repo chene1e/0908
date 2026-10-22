@@ -254,7 +254,8 @@
     cover.classList.remove("hidden");
     window.scrollTo(0, 0);
   });
-  $("openMatchGameBtn").addEventListener("click", function () {
+  const openMatchGameBtn = $("openMatchGameBtn");
+  if (openMatchGameBtn) openMatchGameBtn.addEventListener("click", function () {
     if (libraryCover) libraryCover.classList.add("hidden");
     cover.classList.add("hidden");
     gameView.classList.add("hidden");
