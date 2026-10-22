@@ -117,7 +117,8 @@
     leaderboardStatus.textContent = "正在读取排行榜…";
     try {
       if (hasRemote()) {
-        const rows = await remoteRequest("game_scores?select=name,avatar,score,elapsed_ms,created_at&order=created_at.desc&limit=1000");
+        const rankingQuery = rankingMode === "time" ? "game_scores?select=name,avatar,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc&limit=20" : "game_scores?select=name,avatar,score,elapsed_ms,created_at&order=score.desc&limit=20";
+        const rows = await remoteRequest(rankingQuery);
         cachedLeaderboardRows = rows;
         renderRows(rows, rankingMode);
         leaderboardStatus.textContent = rankingMode === "time"
