@@ -152,6 +152,7 @@ let lastDropTime = 0;
 let gameOverTimer = 0;
 let gameStartedAt = 0;
 let level9ElapsedMs = null;
+let level9Celebrated = false;
 
 // 正在合成的圆形ID
 const mergingBodies = new Set();
@@ -1144,11 +1145,7 @@ function handleCollision(event) {
         }
 
 
-        // 第九级不能继续升级
-        if (bodyA.level >= LEVEL_COUNT) {
-            continue;
-        }
-
+        // 第九级也允许与同级继续合成，累计更高分数。
 
         // 防止重复合成
         if (
@@ -1252,7 +1249,7 @@ function processMergeQueue() {
         }
 
 
-        const newLevel = item.level + 1;
+        const newLevel = Math.min(item.level + 1, LEVEL_COUNT);
 
 
         // 新圆形的位置取两个旧圆形的中间
@@ -1507,29 +1504,19 @@ function formatElapsedTime(ms) {
 // =============================================
 
 function winGame() {
-
-    if (gameOver || won) return;
+    // 首次合成第九级只弹出祝贺提示，不结束本局；玩家可以继续合成冲击更高分。
+    if (gameOver || level9Celebrated) return;
+    level9Celebrated = true;
     level9ElapsedMs = Math.max(0, Date.now() - gameStartedAt);
-    won = true;
-
-    gameOver = true;
-
-    started = false;
-
-    pauseBtn.disabled = true;
-
-    pauseBtn.textContent = "暂停游戏";
-
-    if (window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, true);
-
+    paused = true;
+    Runner.stop(runner);
+    pauseBtn.disabled = false;
+    pauseBtn.textContent = "继续游戏";
+    messageRestart.textContent = "继续合成";
     showMessage(
-
-        "恭喜你，挑战成功！",
-
-        `你成功合成了第九级！用时：${formatElapsedTime(level9ElapsedMs)}，最终得分：${score}`
-
+        "🎉 恭喜合成 Level 9！",
+        `你已经合成最高等级！本局用时：${formatElapsedTime(level9ElapsedMs)}。游戏还没有结束，点击“继续合成”，挑战更高分数吧！当前得分：${score}`
     );
-
 }
 
 
@@ -1547,7 +1534,7 @@ function endGame() {
 
     pauseBtn.disabled = true;
 
-    if (window.finishAndOfferScore) window.finishAndOfferScore(score, null, false);
+    if (window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
 
     showMessage(
 
@@ -1575,7 +1562,7 @@ function stopGameManually() {
     Runner.stop(runner);
 
     if (window.finishAndOfferScore) {
-        window.finishAndOfferScore(score, null, false);
+        window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
     }
 
     showMessage(
@@ -1599,6 +1586,8 @@ function startGame() {
     score = 0;
     gameStartedAt = Date.now();
     level9ElapsedMs = null;
+    level9Celebrated = false;
+    messageRestart.textContent = "再玩一次";
 
     scoreElement.textContent = "0";
 
@@ -1853,11 +1842,19 @@ restartBtn.addEventListener(
 
 
 messageRestart.addEventListener(
-
     "click",
-
-    startGame
-
+    function () {
+        if (level9Celebrated && !gameOver) {
+            message.classList.add("hidden");
+            paused = false;
+            pauseBtn.disabled = false;
+            pauseBtn.textContent = "暂停游戏";
+            messageRestart.textContent = "再玩一次";
+            Runner.run(runner, engine);
+            return;
+        }
+        startGame();
+    }
 );
 
 
