@@ -232,6 +232,7 @@ function discoverLevel(level) {
         progressData.levels.sort((a,b) => a-b);
         saveProgress();
         showToast("📖 图鉴解锁：" + LEVEL_NAMES[level - 1]);
+        checkAchievements();
     }
     renderProgress();
 }
@@ -253,10 +254,10 @@ function updateDailyProgress() {
 }
 function checkAchievements() {
     const achievements = [
-        ["first-merge", (progressData.totalMerges || 0) >= 1, "初次合成"],
-        ["merge-50", (progressData.totalMerges || 0) >= 50, "合成老手"],
-        ["all-levels", progressData.levels.length >= 9, "图鉴收藏家"],
-        ["first-rare", progressData.rares.length >= 1, "欧皇认证"]
+        ...Array.from({ length: LEVEL_COUNT }, (_, index) => {
+            const level = index + 1;
+            return ["level-" + level, progressData.levels.includes(level), LEVEL_NAMES[index]];
+        })
     ];
     achievements.forEach(([id, condition, title]) => {
         if (condition && !progressData.achievements.includes(id)) {
@@ -268,50 +269,27 @@ function checkAchievements() {
 }
 function updateProgressUI() { checkAchievements(); renderProgress(); }
 function renderProgress() {
-    const collection = document.getElementById("collectionSummary");
-    const missions = document.getElementById("dailyMissions");
+    const collectionCount = document.getElementById("collectionCount");
+    const summary = document.getElementById("collectionPageSummary");
     const collectionGrid = document.getElementById("collectionGrid");
-    const achievementList = document.getElementById("achievementList");
-    if (collection) collection.textContent = "已解锁 " + progressData.levels.length + "/9 · 闪光发现 " + progressData.rares.length + "/9";
-    if (achievementList) {
-        const badges = [
-            ["first-merge", "🥇 初次合成"],
-            ["merge-50", "🔥 合成老手"],
-            ["all-levels", "📚 图鉴收藏家"],
-            ["first-rare", "✨ 欧皇认证"]
-        ];
-        achievementList.innerHTML = "";
-        badges.forEach(([id, label]) => {
-            const badge = document.createElement("span");
-            badge.className = "achievement-badge" + (progressData.achievements.includes(id) ? " earned" : "");
-            badge.textContent = label;
-            achievementList.appendChild(badge);
-        });
-    }
-    if (missions) {
-        const tasks = [
-            ["投放 10 个群友", dailyData.drops || 0, 10],
-            ["完成 5 次合成", dailyData.merges || 0, 5],
-            ["发现 1 个闪光群友", dailyData.rares || 0, 1]
-        ];
-        missions.innerHTML = "";
-        tasks.forEach(([label, value, goal]) => {
-            const row = document.createElement("div");
-            row.className = "mission-row";
-            const done = value >= goal;
-            row.innerHTML = '<span>' + (done ? "✅ " : "🎯 ") + label + '</span><strong>' + Math.min(value, goal) + "/" + goal + '</strong>';
-            if (done) row.classList.add("mission-done");
-            missions.appendChild(row);
-        });
-    }
+    if (collectionCount) collectionCount.textContent = progressData.levels.length + "/9";
+    if (summary) summary.textContent = "已合成 " + progressData.levels.length + "/9 张群友图片 · 每解锁一张，就获得一个对应成就。";
     if (collectionGrid) {
         collectionGrid.innerHTML = "";
         for (let level = 1; level <= LEVEL_COUNT; level++) {
             const unlocked = progressData.levels.includes(level);
-            const rare = progressData.rares.includes(String(level));
             const card = document.createElement("div");
-            card.className = "collection-item" + (unlocked ? " unlocked" : "");
-            card.innerHTML = '<span class="collection-level">' + (unlocked ? level : "？") + '</span><span>' + (unlocked ? LEVEL_NAMES[level - 1] : "未解锁") + '</span><small>' + (rare ? "✨ 闪光发现" : unlocked ? "已发现" : "继续合成解锁") + '</small>';
+            card.className = "collection-item collection-card" + (unlocked ? " unlocked" : " locked");
+            const img = document.createElement("img");
+            img.className = "collection-avatar";
+            img.alt = unlocked ? LEVEL_NAMES[level - 1] : "未解锁群友";
+            img.src = unlocked ? "assets/level" + level + ".png" : "";
+            if (!unlocked) img.src = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="50" fill="#eee7db"/><text x="50" y="61" text-anchor="middle" font-size="42" fill="#b7a993">?</text></svg>');
+            const title = document.createElement("strong");
+            title.textContent = unlocked ? LEVEL_NAMES[level - 1] : "？？？";
+            const status = document.createElement("small");
+            status.textContent = unlocked ? "🏅 成就已解锁" : "🔒 合成后解锁";
+            card.append(img, title, status);
             collectionGrid.appendChild(card);
         }
     }
@@ -1103,7 +1081,6 @@ function dropBall() {
     saveProgress();
     dailyData.drops = (dailyData.drops || 0) + 1;
     saveDaily();
-    discoverLevel(nextLevel);
     updateProgressUI();
 
     canDrop = false;
@@ -1338,6 +1315,7 @@ function processMergeQueue() {
             showToast("⚡ 双倍时间！得分翻倍");
         }
         updateScore(earned);
+        discoverLevel(newLevel);
         if (isRare) discoverRare(newLevel);
         updateDailyProgress();
         updateProgressUI();
@@ -1903,14 +1881,23 @@ stopBtnBottom.addEventListener(
 
 );
 
-const collectionToggleBtn = document.getElementById("collectionToggleBtn");
-if (collectionToggleBtn) {
-    collectionToggleBtn.addEventListener("click", function () {
-        const panel = document.getElementById("collectionPanel");
-        if (!panel) return;
-        panel.classList.toggle("hidden");
-        collectionToggleBtn.textContent = panel.classList.contains("hidden") ? "📚 群友图鉴" : "收起图鉴";
+const collectionOpenBtn = document.getElementById("collectionOpenBtn");
+const collectionBackBtn = document.getElementById("collectionBackBtn");
+const gameView = document.getElementById("gameView");
+const collectionView = document.getElementById("collectionView");
+if (collectionOpenBtn && collectionView && gameView) {
+    collectionOpenBtn.addEventListener("click", function () {
+        gameView.classList.add("hidden");
+        collectionView.classList.remove("hidden");
         renderProgress();
+        window.scrollTo(0, 0);
+    });
+}
+if (collectionBackBtn && collectionView && gameView) {
+    collectionBackBtn.addEventListener("click", function () {
+        collectionView.classList.add("hidden");
+        gameView.classList.remove("hidden");
+        window.scrollTo(0, 0);
     });
 }
 
