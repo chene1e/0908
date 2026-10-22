@@ -1860,6 +1860,17 @@ stopBtnBottom.addEventListener(
 
 );
 
+const collectionToggleBtn = document.getElementById("collectionToggleBtn");
+if (collectionToggleBtn) {
+    collectionToggleBtn.addEventListener("click", function () {
+        const panel = document.getElementById("collectionPanel");
+        if (!panel) return;
+        panel.classList.toggle("hidden");
+        collectionToggleBtn.textContent = panel.classList.contains("hidden") ? "📚 群友图鉴" : "收起图鉴";
+        renderProgress();
+    });
+}
+
 
 // =============================================
 // 二十六、初始化游戏
