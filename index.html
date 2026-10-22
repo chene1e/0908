@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>主题合成大群友</title>
-<link rel="stylesheet" href="style.css?v=20261022-fun3">
+<link rel="stylesheet" href="style.css?v=20261022-clean1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
@@ -51,20 +51,9 @@
       <div class="info-card"><span>历史最高分</span><strong id="bestScore">0</strong></div>
       <div class="info-card"><span>下一个照片</span><canvas id="nextCanvas" width="80" height="80"></canvas></div>
     </section>
-    <section class="fun-panel">
-      <div class="fun-panel-head">
-        <div><strong>🎯 今日挑战</strong><p>完成小目标，解锁更多群友</p></div>
-        <button id="collectionToggleBtn" class="mini-button" type="button">📚 群友图鉴</button>
-      </div>
-      <div id="dailyMissions" class="daily-missions"></div>
-      <div class="achievement-section"><strong>🏅 成就徽章</strong><div id="achievementList" class="achievement-list"></div></div>
-      <p id="collectionSummary" class="collection-summary">图鉴载入中…</p>
-      <div id="collectionPanel" class="collection-panel hidden">
-        <h3>📚 群友图鉴</h3>
-        <p>不断合成，发现全部 9 个等级；金色闪光代表发现过稀有变体。</p>
-        <div id="collectionGrid" class="collection-grid"></div>
-      </div>
-    </section>
+    <div class="game-shortcuts">
+      <button id="collectionOpenBtn" class="outline-button" type="button">📚 群友图鉴 <span id="collectionCount">0/9</span></button>
+    </div>
     <div class="game-wrapper">
       <div id="gameToast" class="game-toast" role="status" aria-live="polite"></div>
       <div id="game-container"></div>
@@ -94,9 +83,18 @@
       <p>6. 圆形堆得太高，游戏就会结束。</p>
     </div>
   </section>
+
+  <section id="collectionView" class="panel-view hidden">
+    <button id="collectionBackBtn" class="back-button" type="button">← 返回游戏</button>
+    <p class="cover-kicker">FRIEND COLLECTION</p>
+    <h2>群友图鉴</h2>
+    <p id="collectionPageSummary" class="collection-page-summary">合成新等级的群友，逐个点亮图鉴！</p>
+    <div id="collectionGrid" class="collection-grid collection-page-grid"></div>
+  </section>
+  </section>
 </div>
 <script src="config.js?v=20261022-stop1"></script>
-<script src="game.js?v=20261022-fun3"></script>
+<script src="game.js?v=20261022-clean1"></script>
 <script src="lobby.js?v=20261022-requestack1"></script>
 </body>
 </html>
