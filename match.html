@@ -3,24 +3,33 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f7f2e9">
-<title>群友消消乐</title><link rel="stylesheet" href="match.css?v=2">
+<title>群友消消乐</title><link rel="stylesheet" href="match.css?v=3">
 </head>
 <body>
 <main class="match-app">
   <a class="back-link" href="index.html">← 返回游戏库</a>
-  <header class="hero"><p class="eyebrow">GROUP FRIENDS MATCH</p><h1>群友消消乐</h1><p>交换头像，凑齐三个相同的群友！</p></header>
-  <section class="scorebar" aria-label="游戏数据">
-    <div><span>当前分数</span><strong id="score">0</strong></div>
-    <div><span>目标分数</span><strong id="target">1500</strong></div>
-    <div><span>剩余步数</span><strong id="moves">25</strong></div>
+  <section id="gameCover" class="game-cover">
+    <p class="eyebrow">GROUP FRIENDS MATCH</p>
+    <h1>群友消消乐</h1>
+    <p class="cover-subtitle">一分钟限时挑战！交换头像，凑齐三个相同的群友。</p>
+    <div class="cover-rules"><span>⏱️ 60 秒</span><span>✨ 三消得分</span><span>🏆 冲击排行榜</span></div>
+    <button id="startGame" class="start-game" type="button">开始游戏</button>
+    <section class="ranking-panel cover-ranking" aria-labelledby="rankingTitle"><h2 id="rankingTitle">🏆 本机排行榜</h2><p>按分数排序，仅保存在当前浏览器</p><ol id="rankingList" class="ranking-list"></ol></section>
   </section>
-  <div class="progress-track"><span id="progress"></span></div>
-  <section class="game-shell">
-    <div class="board-top"><span id="message" role="status" aria-live="polite">点选一个头像，再点相邻头像交换</span><button id="restart" type="button">重新开始</button></div>
-    <div id="board" class="board" role="grid" aria-label="群友消消乐棋盘"></div>
+  <section id="gameArea" class="game-area hidden">
+    <header class="hero"><p class="eyebrow">GROUP FRIENDS MATCH</p><h1>群友消消乐</h1><p>交换头像，凑齐三个相同的群友！</p></header>
+    <section class="scorebar" aria-label="游戏数据">
+      <div><span>当前分数</span><strong id="score">0</strong></div>
+      <div><span>剩余时间</span><strong id="timeLeft">60</strong></div>
+      <div><span>目标分数</span><strong id="target">1500</strong></div>
+    </section>
+    <div class="progress-track"><span id="progress"></span></div>
+    <section class="game-shell">
+      <div class="board-top"><span id="message" role="status" aria-live="polite">交换相邻头像，凑齐三个即可消除</span><button id="endGame" type="button">提前结束</button></div>
+      <div id="board" class="board" role="grid" aria-label="群友消消乐棋盘"></div>
+    </section>
   </section>
-  <section class="ranking-panel" aria-labelledby="rankingTitle"><h2 id="rankingTitle">🏆 本机排行榜</h2><p>按本浏览器保存的最高分排序</p><ol id="rankingList" class="ranking-list"></ol></section>
-  <div id="result" class="result hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle"><div class="result-card"><div id="resultEmoji" class="result-emoji">🎉</div><h2 id="resultTitle">漂亮！</h2><p id="resultText"></p><button id="playAgain" type="button">再来一局</button><a href="index.html">返回游戏库</a></div></div>
+  <div id="result" class="result hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle"><div class="result-card"><div id="resultEmoji" class="result-emoji">🏁</div><h2 id="resultTitle">本局结束</h2><p id="resultText"></p><button id="playAgain" type="button">再来一局</button><a id="backToCover" href="#">返回封面</a></div></div>
 </main>
-<script src="match.js?v=4"></script>
+<script src="match.js?v=5"></script>
 </body></html>
