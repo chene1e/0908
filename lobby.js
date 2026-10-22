@@ -113,8 +113,29 @@
         $("submitScoreHint").textContent = "成绩已保存在本机。要让所有人共享，还需完成一次在线数据库配置。";
       }
       scoreSubmitted = true; this.textContent = "已提交";
-    } catch (_) {
-      $("submitScoreHint").textContent = "在线提交失败，成绩已保存在本机，请稍后重试。";
+    } catch (submitError) {
+      // 网络/响应解析可能在数据库已经写入后才失败；先核对云端，避免误报失败。
+      try {
+        if (hasRemote()) {
+          const from = new Date(Date.now() - 120000).toISOString();
+          const verifyPath = "game_scores?select=id,name,score,created_at"
+            + "&name=eq." + encodeURIComponent(profile.name)
+            + "&score=eq." + encodeURIComponent(String(currentScore))
+            + "&created_at=gte." + encodeURIComponent(from)
+            + "&order=created_at.desc&limit=10";
+          const matches = await remoteRequest(verifyPath);
+          const confirmed = Array.isArray(matches) && matches.some(item =>
+            item.name === profile.name && Number(item.score) === Number(currentScore)
+          );
+          if (confirmed) {
+            $("submitScoreHint").textContent = "成绩已成功写入全球排行榜！页面刚才未收到正常确认，现已核实云端记录。";
+            scoreSubmitted = true; this.disabled = true; this.textContent = "已提交";
+            return;
+          }
+        }
+      } catch (_) {}
+      const detail = submitError && submitError.message ? submitError.message : "未知错误";
+      $("submitScoreHint").textContent = "未能确认云端提交（" + detail.slice(0, 180) + "）。本机已暂存成绩，可点击重试。";
       this.disabled = false; this.textContent = "重试提交";
     }
   });
