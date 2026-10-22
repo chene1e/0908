@@ -130,28 +130,16 @@
     }
     try {
       if (hasRemote()) {
-        // 不读取 avatar：历史头像可能是很大的 base64 字符串，是排行榜首屏慢的重要来源。
-        // 排行榜用统一默认头像，显著减少传输量。
+        // 直接在排行榜请求中读取 avatar，避免单独头像请求被 RLS/列权限拦截后静默退回默认头像。
+        // 排行榜只取前 20 条，确保已有历史头像继续正常显示。
         const rankingQuery = rankingMode === "time"
-          ? "game_scores?select=id,name,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20"
-          : "game_scores?select=id,name,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
+          ? "game_scores?select=id,name,avatar,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20"
+          : "game_scores?select=id,name,avatar,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
         const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-        const timeout = controller ? setTimeout(() => controller.abort(), 8000) : null;
+        const timeout = controller ? setTimeout(() => controller.abort(), 12000) : null;
         let rows;
         try { rows = await remoteRequest(rankingQuery, controller ? { signal: controller.signal } : undefined); }
         finally { if (timeout) clearTimeout(timeout); }
-        // 先取轻量排名数据，再只读取当前页头像，避免一次下载所有历史 base64 头像拖慢排行榜。
-        const pageRows = rows.slice(0, rankingPageSize);
-        if (pageRows.length) {
-          try {
-            const ids = pageRows.map(row => row.id).filter(id => Number.isFinite(Number(id)));
-            if (ids.length) {
-              const avatarRows = await remoteRequest("game_scores?select=id,avatar&id=in.(" + ids.join(",") + ")");
-              const avatarById = new Map(avatarRows.map(item => [String(item.id), item.avatar || ""]));
-              rows = rows.map(row => Object.assign({}, row, { avatar: avatarById.get(String(row.id)) || "" }));
-            }
-          } catch (_) { /* 头像读取失败不应让成绩排行榜整体失效 */ }
-        }
         cachedLeaderboardRows = rows;
         writeRankingCache(rankingMode, rows);
         renderRows(rows, rankingMode);
