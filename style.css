@@ -654,19 +654,39 @@ button {
 .ad-modal-card {
   position: relative;
   z-index: 1;
-  width: min(100%, 340px);
-  padding: 30px 24px 24px;
-  border: 1px solid #f0dfc1;
-  border-radius: 22px;
-  background: #fffdf8;
-  box-shadow: 0 18px 60px #0003;
+  width: min(100%, 420px);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  padding: 44px 0 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
   text-align: center;
   animation: ad-modal-pop .22s ease-out;
 }
+.ad-modal-card h2 {
+  margin: 0 18px 14px;
+  color: #fff;
+  font-size: clamp(20px, 5vw, 26px);
+  line-height: 1.4;
+  text-shadow: 0 2px 8px #0009;
+}
+.ad-modal-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 150px);
+  object-fit: contain;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
 .ad-modal-close {
   position: absolute;
-  top: 8px;
-  right: 12px;
+  top: 0;
+  right: 4px;
   width: 34px;
   height: 34px;
   border: 0;
@@ -676,9 +696,6 @@ button {
   font-size: 27px;
   cursor: pointer;
 }
-.ad-modal-icon { margin: 2px 0 10px; font-size: 42px; }
-.ad-modal-card h2 { margin: 0 0 12px; color: #49351f; font-size: 25px; }
-.ad-modal-card p { margin: 0 0 23px; color: #887762; font-size: 15px; }
 .ad-modal-card .primary-button { min-width: 140px; }
 @keyframes ad-modal-pop {
   from { opacity: 0; transform: translateY(8px) scale(.97); }
