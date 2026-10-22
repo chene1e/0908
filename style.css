@@ -329,3 +329,9 @@ button {
 /* 主动结束本局按钮 */
 .buttons { flex-wrap: wrap; }
 #stopBtn { flex: 1 1 100%; background: #b84b42; }
+
+
+/* 让主动结束按钮在进入游戏后立刻可见 */
+.stop-button { background: #c9362b; color: #fff; font-weight: 800; border: 2px solid #a8241b; box-shadow: 0 3px 0 #8e1d16; }
+.stop-button-top { display: block; width: 100%; margin: 0 0 14px; padding: 15px 12px; font-size: 16px; }
+.stop-button-bottom { flex: 1 1 100%; }
