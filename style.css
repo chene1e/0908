@@ -380,3 +380,27 @@ button {
 .achievement-list { display:flex; flex-wrap:wrap; gap:6px; }
 .achievement-badge { display:inline-flex; align-items:center; padding:6px 8px; border-radius:999px; background:#ece8e1; color:#a19a8e; font-size:11px; border:1px solid #e2ddd4; }
 .achievement-badge.earned { background:#fff0c9; color:#865914; border-color:#e8c16d; box-shadow:inset 0 0 0 1px #fff8e8; }
+
+
+/* 简洁游戏主界面与独立图鉴页 */
+.game-shortcuts { margin: 0 0 10px; }
+.game-shortcuts .outline-button { display:flex; justify-content:space-between; align-items:center; padding:10px 13px; font-size:13px; background:#fff; border-color:#ead8b7; box-shadow:none; }
+.game-shortcuts .outline-button span { padding:3px 8px; border-radius:999px; background:#fff2d8; font-size:12px; }
+.collection-page-summary { text-align:center; color:#817565; font-size:13px; line-height:1.6; margin:10px 0 18px; }
+.collection-page-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.collection-card { padding:12px 5px; min-height:150px; justify-content:center; border:1px solid #eee5d7; background:#f8f5ef; }
+.collection-card.unlocked { border-color:#e9c77f; background:linear-gradient(180deg,#fffaf0,#fff); box-shadow:0 3px 10px #a87b2610; }
+.collection-avatar { width:72px; height:72px; object-fit:cover; border-radius:50%; background:#eee7db; border:3px solid #fff; box-shadow:0 2px 7px #00000012; }
+.collection-card strong { max-width:100%; font-size:12px; color:#6b5940; overflow-wrap:anywhere; }
+.collection-card small { font-size:10px; line-height:1.4; color:#a18d6f; }
+.collection-card.unlocked small { color:#a66d16; }
+#gameView > header { margin-bottom:12px; }
+#gameView > header h1 { font-size:24px; }
+#gameView > header p { font-size:12px; }
+#gameView .info-panel { margin-bottom:10px; }
+#gameView .stop-button-top { margin-bottom:10px; }
+@media(max-width:400px) {
+ .collection-page-grid { gap:8px; }
+ .collection-card { min-height:132px; padding:9px 3px; }
+ .collection-avatar { width:60px; height:60px; }
+}
