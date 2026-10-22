@@ -1,6 +1,5 @@
-// 在线排行榜配置：接入 Supabase 后填写以下两项。
-// 未配置时，游戏仍可玩，但排行榜只保存在当前设备，无法跨设备共享。
+// Supabase 在线排行榜配置（publishable key 可用于前端；不要放 service_role/secret key）
 window.LEADERBOARD_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: ""
+  supabaseUrl: "https://owqerwkisyjiiskmecoc.supabase.co",
+  supabaseAnonKey: "sb_publishable_lSgOHoB_iQ3Uz3HxfQfezg_1ULuo1Bk"
 };
