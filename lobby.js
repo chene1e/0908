@@ -8,6 +8,9 @@
   let avatarData = "";
   let currentScore = null;
   let scoreSubmitted = false;
+  let currentElapsedMs = null;
+  let currentRoundWon = false;
+  let rankingMode = "score";
 
   function readProfile() {
     try { return JSON.parse(localStorage.getItem("bigGroupProfile") || "{}"); } catch (_) { return {}; }
@@ -50,47 +53,70 @@
     const text = await response.text();
     return text ? JSON.parse(text) : [];
   }
-  function renderRows(rows) {
+  function formatElapsed(ms) {
+    const seconds = Number(ms) / 1000;
+    return Number.isFinite(seconds) && seconds >= 0 ? seconds.toFixed(2) + " 秒" : "—";
+  }
+  function renderRows(rows, mode) {
     leaderboardList.innerHTML = "";
-    if (!rows.length) {
+    const eligible = mode === "time" ? rows.filter(row => row.elapsed_ms !== null && row.elapsed_ms !== undefined && Number.isFinite(Number(row.elapsed_ms))) : rows;
+    const sorted = eligible.slice().sort((a, b) => mode === "time"
+      ? Number(a.elapsed_ms) - Number(b.elapsed_ms)
+      : Number(b.score) - Number(a.score));
+    if (!sorted.length) {
       const li = document.createElement("li");
       li.className = "empty-ranking";
-      li.textContent = "还没有成绩，快来成为第一位上榜的群友！";
+      li.textContent = mode === "time" ? "还没有群友合成 Level 9，快来争夺最快通关！" : "还没有成绩，快来成为第一位上榜的群友！";
       leaderboardList.appendChild(li);
       return;
     }
-    rows.slice().sort((a,b) => Number(b.score)-Number(a.score)).slice(0,100).forEach((row,index) => {
+    sorted.slice(0, 100).forEach((row, index) => {
       const li = document.createElement("li");
-      const rank = document.createElement("span"); rank.className = "rank-number"; rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index+1);
+      const rank = document.createElement("span"); rank.className = "rank-number"; rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index + 1);
       const img = document.createElement("img"); img.className = "rank-avatar"; img.alt = ""; img.src = row.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23f3eadc'/%3E%3Ctext x='50%25' y='58%25' font-size='42' text-anchor='middle'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
       const info = document.createElement("div"); info.className = "rank-info";
       const name = document.createElement("div"); name.className = "rank-name"; name.textContent = row.name || "神秘群友";
       const time = document.createElement("div"); time.className = "rank-time"; time.textContent = row.created_at ? new Date(row.created_at).toLocaleString() : "本机记录";
-      info.append(name,time);
-      const score = document.createElement("span"); score.className = "rank-score"; score.textContent = Number(row.score) + "分";
-      li.append(rank,img,info,score); leaderboardList.appendChild(li);
+      info.append(name, time);
+      const metric = document.createElement("span"); metric.className = "rank-score";
+      metric.textContent = mode === "time" ? formatElapsed(row.elapsed_ms) : Number(row.score) + "分";
+      li.append(rank, img, info, metric); leaderboardList.appendChild(li);
     });
+  }
+  function setRankingMode(mode) {
+    rankingMode = mode;
+    $("scoreLeaderboardTab").classList.toggle("active", mode === "score");
+    $("timeLeaderboardTab").classList.toggle("active", mode === "time");
+    $("scoreLeaderboardTab").setAttribute("aria-pressed", String(mode === "score"));
+    $("timeLeaderboardTab").setAttribute("aria-pressed", String(mode === "time"));
+    loadLeaderboard();
   }
   async function loadLeaderboard() {
     leaderboardStatus.textContent = "正在读取排行榜…";
     try {
       if (hasRemote()) {
-        const rows = await remoteRequest("game_scores?select=name,avatar,score,created_at&order=score.desc,created_at.desc&limit=100");
-        renderRows(rows);
-        leaderboardStatus.textContent = "在线全球榜 · 每局成绩独立记录";
+        const rows = await remoteRequest("game_scores?select=name,avatar,score,elapsed_ms,created_at&order=created_at.desc&limit=1000");
+        renderRows(rows, rankingMode);
+        leaderboardStatus.textContent = rankingMode === "time"
+          ? "在线全球榜 · 仅统计成功合成 Level 9 的成绩，时间越短排名越高"
+          : "在线全球榜 · 每局成绩独立记录，分数越高排名越高";
       } else {
-        renderRows(localScores());
+        renderRows(localScores(), rankingMode);
         leaderboardStatus.textContent = "当前为本机预览榜；配置在线数据库后，所有人才能共享成绩。";
       }
     } catch (_) {
-      renderRows(localScores());
+      renderRows(localScores(), rankingMode);
       leaderboardStatus.textContent = "在线榜暂时无法连接，以下显示本机记录。";
     }
   }
-  window.finishAndOfferScore = function (score) {
+  window.finishAndOfferScore = function (score, elapsedMs, wonRound) {
     currentScore = Number(score) || 0;
+    currentElapsedMs = elapsedMs !== null && elapsedMs !== undefined && Number.isFinite(Number(elapsedMs)) ? Number(elapsedMs) : null;
+    currentRoundWon = wonRound === true && currentElapsedMs !== null;
     scoreSubmitted = false;
-    $("submitScoreHint").textContent = "本局得分：" + currentScore + "。点击提交，将成绩加入排行榜。";
+    $("submitScoreHint").textContent = currentRoundWon
+      ? "本局得分：" + currentScore + "。通关用时：" + formatElapsed(currentElapsedMs) + "。一次提交即可记录分数和最快通关成绩。"
+      : "本局得分：" + currentScore + "。点击提交，将成绩加入分数排行榜。合成 Level 9 后才会计入时间排行榜。";
     $("submitScoreBtn").disabled = false;
     $("submitScoreBtn").textContent = "提交本局成绩";
     $("scoreSubmitArea").classList.remove("hidden");
@@ -102,7 +128,7 @@
       $("submitScoreHint").textContent = "请先返回封面设置群昵称，再提交成绩。";
       return;
     }
-    const row = { name: profile.name, avatar: profile.avatar, score: currentScore, created_at: new Date().toISOString() };
+    const row = { name: profile.name, avatar: profile.avatar, score: currentScore, elapsed_ms: currentRoundWon ? currentElapsedMs : null, created_at: new Date().toISOString() };
     this.disabled = true; this.textContent = "提交中…";
     storeLocalScore(row);
     try {
@@ -161,6 +187,8 @@
   $("leaderboardBackBtn").addEventListener("click", backToCover);
   $("gameBackBtn").addEventListener("click", backToCover);
   $("leaderboardRefreshBtn").addEventListener("click", loadLeaderboard);
+  $("scoreLeaderboardTab").addEventListener("click", function () { setRankingMode("score"); });
+  $("timeLeaderboardTab").addEventListener("click", function () { setRankingMode("time"); });
   const saved = readProfile();
   if (saved.name) nameInput.value = saved.name;
   if (saved.avatar) { avatarData = saved.avatar; avatarPreview.src = avatarData; avatarPreview.hidden = false; avatarFallback.classList.add("hidden"); }
