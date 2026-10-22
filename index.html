@@ -14,7 +14,7 @@
     <p class="cover-kicker">GROUP FRIENDS GAME HUB</p>
     <h1>兄弟姐妹全上岸<br>游戏库</h1>
     <p class="cover-subtitle">快乐开黑，轻松上岸。选一款游戏开始吧！</p>
-    <div class="library-tools"><label class="sr-only" for="gameSearch">搜索游戏</label><input id="gameSearch" type="search" placeholder="🔎 搜索游戏名称或玩法…" autocomplete="off"><label class="sr-only" for="gameCategory">游戏分类</label><select id="gameCategory"><option value="all">全部游戏</option><option value="playable">可游玩</option><option value="coming">即将上线</option></select><p id="gameSearchStatus" aria-live="polite">共 3 款游戏</p></div>
+    <div class="library-tools"><label class="sr-only" for="gameSearch">搜索游戏</label><input id="gameSearch" type="search" placeholder="🔎 搜索游戏名称或玩法…" autocomplete="off"><label class="sr-only" for="gameCategory">游戏分类</label><select id="gameCategory"><option value="all">全部游戏</option><option value="playable">可游玩</option></select><p id="gameSearchStatus" aria-live="polite">共 3 款游戏</p></div>
     <div class="game-library-list">
       <button id="openMergeGameBtn" class="library-game-card" data-category="playable" type="button">
         <span class="library-game-icon">🫧</span>
@@ -34,15 +34,15 @@
         </span>
         <span class="library-game-arrow">›</span>
       </a>
-      <button id="openMatchGameBtn" class="library-game-card development-card" data-category="coming" type="button">
+      <a class="library-game-card" data-category="playable" href="match.html" style="text-decoration:none;color:inherit">
         <span class="library-game-icon">🧩</span>
         <span class="library-game-copy">
           <strong>群友消消乐</strong>
-          <small>和群友一起消除闯关，敬请期待。</small>
-          <em>查看开发进度 →</em>
+          <small>用九张真实群友头像消除闯关！</small>
+          <em>立即游玩 →</em>
         </span>
         <span class="library-game-arrow">›</span>
-      </button>
+      </a>
     </div>
     <button id="openFeedbackBtn" class="outline-button feedback-open-button" type="button">💬 我想对策划说点什么</button>
     <p class="cover-footnote">更多群友小游戏，持续上新中。</p>
