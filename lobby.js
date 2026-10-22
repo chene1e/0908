@@ -71,9 +71,12 @@
   function renderRows(rows, mode) {
     leaderboardList.innerHTML = "";
     const eligible = mode === "time" ? rows.filter(row => row.elapsed_ms !== null && row.elapsed_ms !== undefined && Number.isFinite(Number(row.elapsed_ms))) : rows;
-    const sorted = eligible.slice().sort((a, b) => mode === "time"
-      ? Number(a.elapsed_ms) - Number(b.elapsed_ms)
-      : Number(b.score) - Number(a.score));
+    const sorted = eligible.slice().sort((a, b) => {
+      const primary = mode === "time" ? Number(a.elapsed_ms) - Number(b.elapsed_ms) : Number(b.score) - Number(a.score);
+      if (primary) return primary;
+      const dateOrder = String(a.created_at || "").localeCompare(String(b.created_at || ""));
+      return dateOrder || String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+    });
     const pageCount = Math.max(1, Math.ceil(sorted.length / rankingPageSize));
     rankingPage = Math.min(Math.max(1, rankingPage), pageCount);
     const pageInfo = $("leaderboardPageInfo");
@@ -117,7 +120,7 @@
     leaderboardStatus.textContent = "正在读取排行榜…";
     try {
       if (hasRemote()) {
-        const rankingQuery = rankingMode === "time" ? "game_scores?select=name,avatar,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc&limit=20" : "game_scores?select=name,avatar,score,elapsed_ms,created_at&order=score.desc&limit=20";
+        const rankingQuery = rankingMode === "time" ? "game_scores?select=name,avatar,score,elapsed_ms,created_at&elapsed_ms=not.is.null&order=elapsed_ms.asc,created_at.asc,name.asc&limit=20" : "game_scores?select=name,avatar,score,elapsed_ms,created_at&order=score.desc,created_at.asc,name.asc&limit=20";
         const rows = await remoteRequest(rankingQuery);
         cachedLeaderboardRows = rows;
         renderRows(rows, rankingMode);
@@ -132,7 +135,7 @@
     } catch (_) {
       cachedLeaderboardRows = localScores();
       renderRows(cachedLeaderboardRows, rankingMode);
-      leaderboardStatus.textContent = "在线榜暂时无法连接，以下显示本机记录。";
+      leaderboardStatus.textContent = "⚠ 在线排行榜读取失败，当前显示本机记录（不代表全球榜）。请检查网络后刷新。";
     }
   }
   window.finishAndOfferScore = function (score, elapsedMs, wonRound) {
