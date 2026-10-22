@@ -262,3 +262,24 @@ button:disabled {
     }
 
 }
+
+/* 手机端滚动与触控兼容 */
+html {
+    min-height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+button {
+    touch-action: manipulation;
+}
+
+#game-container canvas {
+    touch-action: pan-y;
+}
