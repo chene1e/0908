@@ -1550,8 +1550,6 @@ function bindInputEvents() {
 
         function (event) {
 
-            event.preventDefault();
-
             if (event.touches.length > 0) {
 
                 updatePointer(
@@ -1579,8 +1577,6 @@ function bindInputEvents() {
         "touchend",
 
         function (event) {
-
-            event.preventDefault();
 
             dropBall();
 
