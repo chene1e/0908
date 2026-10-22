@@ -160,6 +160,22 @@ const mergingBodies = new Set();
 // 待处理的合成事件
 let mergeQueue = [];
 
+// 趣味玩法：连击、随机事件、稀有群友与图鉴
+let comboCount = 0;
+let lastMergeAt = 0;
+let eventMultiplierUntil = 0;
+let nextMergeBonus = false;
+let nextEventAt = 0;
+let roundDrops = 0;
+let roundMerges = 0;
+let roundRare = 0;
+const PROGRESS_KEY = "bigGroupProgressV1";
+const DAILY_KEY = "bigGroupDailyV1";
+const LEVEL_NAMES = ["初来乍到","活跃群友","气氛担当","梗王候选","群聊明星","资深群友","传奇群友","群聊传说","合成之神"];
+let progressData = loadProgress();
+let dailyData = loadDaily();
+
+
 
 // =============================================
 // 五、读取最高分
@@ -179,7 +195,109 @@ try {
 }
 
 bestScoreElement.textContent = bestScore;
+renderProgress();
 
+
+// =============================================
+// 趣味系统：本地保存的图鉴、每日任务、随机事件
+// =============================================
+function loadProgress() {
+    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{"levels":[],"rares":[]}'); }
+    catch (_) { return { levels: [], rares: [] }; }
+}
+function loadDaily() {
+    const today = new Date().toLocaleDateString("sv-SE");
+    try {
+        const saved = JSON.parse(localStorage.getItem(DAILY_KEY) || "{}");
+        return saved.date === today ? saved : { date: today, drops: 0, merges: 0, rares: 0, games: 0 };
+    } catch (_) { return { date: today, drops: 0, merges: 0, rares: 0, games: 0 }; }
+}
+function saveProgress() {
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progressData)); } catch (_) {}
+}
+function saveDaily() {
+    try { localStorage.setItem(DAILY_KEY, JSON.stringify(dailyData)); } catch (_) {}
+}
+function discoverLevel(level) {
+    if (!progressData.levels.includes(level)) {
+        progressData.levels.push(level);
+        progressData.levels.sort((a,b) => a-b);
+        saveProgress();
+        showToast("📖 图鉴解锁：" + LEVEL_NAMES[level - 1]);
+    }
+    renderProgress();
+}
+function discoverRare(level) {
+    const key = String(level);
+    if (!progressData.rares.includes(key)) {
+        progressData.rares.push(key);
+        saveProgress();
+    }
+    dailyData.rares = (dailyData.rares || 0) + 1;
+    saveDaily();
+    renderProgress();
+}
+function updateDailyProgress() {
+    dailyData.merges = (dailyData.merges || 0) + 1;
+    saveDaily();
+}
+function updateProgressUI() { renderProgress(); }
+function renderProgress() {
+    const collection = document.getElementById("collectionSummary");
+    const missions = document.getElementById("dailyMissions");
+    const collectionGrid = document.getElementById("collectionGrid");
+    if (collection) collection.textContent = "已解锁 " + progressData.levels.length + "/9 · 闪光发现 " + progressData.rares.length + "/9";
+    if (missions) {
+        const tasks = [
+            ["投放 10 个群友", dailyData.drops || 0, 10],
+            ["完成 5 次合成", dailyData.merges || 0, 5],
+            ["发现 1 个闪光群友", dailyData.rares || 0, 1]
+        ];
+        missions.innerHTML = "";
+        tasks.forEach(([label, value, goal]) => {
+            const row = document.createElement("div");
+            row.className = "mission-row";
+            const done = value >= goal;
+            row.innerHTML = '<span>' + (done ? "✅ " : "🎯 ") + label + '</span><strong>' + Math.min(value, goal) + "/" + goal + '</strong>';
+            if (done) row.classList.add("mission-done");
+            missions.appendChild(row);
+        });
+    }
+    if (collectionGrid) {
+        collectionGrid.innerHTML = "";
+        for (let level = 1; level <= LEVEL_COUNT; level++) {
+            const unlocked = progressData.levels.includes(level);
+            const rare = progressData.rares.includes(String(level));
+            const card = document.createElement("div");
+            card.className = "collection-item" + (unlocked ? " unlocked" : "");
+            card.innerHTML = '<span class="collection-level">' + (unlocked ? level : "？") + '</span><span>' + (unlocked ? LEVEL_NAMES[level - 1] : "未解锁") + '</span><small>' + (rare ? "✨ 闪光发现" : unlocked ? "已发现" : "继续合成解锁") + '</small>';
+            collectionGrid.appendChild(card);
+        }
+    }
+}
+let toastTimer = null;
+function showToast(text) {
+    const toast = document.getElementById("gameToast");
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add("toast-show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("toast-show"), 2100);
+}
+function triggerRandomEvent() {
+    const event = Math.floor(Math.random() * 3);
+    if (event === 0) {
+        eventMultiplierUntil = Date.now() + 9000;
+        showToast("⚡ 欧皇时间！接下来 9 秒合成双倍得分！");
+    } else if (event === 1) {
+        nextMergeBonus = true;
+        showToast("🎁 群友应援！下一次合成额外加分！");
+    } else {
+        const bonus = 20 + Math.floor(Math.random() * 31);
+        updateScore(bonus);
+        showToast("🧧 群友红包！直接获得 +" + bonus + " 分！");
+    }
+}
 
 // =============================================
 // 六、圆形照片背景颜色
@@ -237,6 +355,7 @@ function createBall(x, y, level) {
 
     // 保存当前圆形的等级
     ball.level = level;
+    ball.isRare = false;
 
     return ball;
 
@@ -460,7 +579,8 @@ function drawCircularImage(
     x,
     y,
     radius,
-    level
+    level,
+    isRare = false
 ) {
 
     ctx.save();
@@ -557,6 +677,19 @@ function drawCircularImage(
 
     ctx.restore();
 
+
+    // 稀有群友带有金色光环
+    if (isRare) {
+        ctx.save();
+        ctx.shadowColor = "#ffbf36";
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
+        ctx.strokeStyle = "#ffbf36";
+        ctx.lineWidth = Math.max(3, radius * 0.09);
+        ctx.stroke();
+        ctx.restore();
+    }
 
     // 绘制白色圆形边框
     ctx.save();
@@ -675,7 +808,8 @@ function drawGame() {
 
             RADII[body.level - 1],
 
-            body.level
+            body.level,
+            body.isRare
 
         );
 
@@ -727,7 +861,8 @@ function drawGame() {
 
             radius,
 
-            nextLevel
+            nextLevel,
+            false
 
         );
 
@@ -922,6 +1057,11 @@ function dropBall() {
         engine.world,
         ball
     );
+    roundDrops++;
+    dailyData.drops = (dailyData.drops || 0) + 1;
+    saveDaily();
+    discoverLevel(nextLevel);
+    updateProgressUI();
 
     canDrop = false;
 
@@ -1132,10 +1272,32 @@ function processMergeQueue() {
         mergingBodies.delete(bodyB.id);
 
 
-        // 增加合成分数
-        updateScore(
-            LEVEL_SCORES[newLevel - 1]
-        );
+        // 连击、活动倍率与稀有群友奖励
+        const now = Date.now();
+        comboCount = now - lastMergeAt <= 4500 ? comboCount + 1 : 1;
+        lastMergeAt = now;
+        roundMerges++;
+        const multiplier = (now < eventMultiplierUntil ? 2 : 1) * (comboCount >= 3 ? 1.5 : 1);
+        const isRare = Math.random() < 0.09;
+        let earned = Math.round(LEVEL_SCORES[newLevel - 1] * multiplier);
+        if (nextMergeBonus) {
+            earned += LEVEL_SCORES[newLevel - 1] * 2;
+            nextMergeBonus = false;
+            showToast("🎁 群友应援！本次合成额外加分");
+        }
+        if (isRare) {
+            earned *= 3;
+            roundRare++;
+            showToast("✨ 欧皇！发现闪光群友，三倍合成分！");
+        } else if (comboCount >= 3) {
+            showToast("🔥 " + comboCount + " 连击！得分 x1.5");
+        } else if (now < eventMultiplierUntil) {
+            showToast("⚡ 双倍时间！得分翻倍");
+        }
+        updateScore(earned);
+        if (isRare) discoverRare(newLevel);
+        updateDailyProgress();
+        updateProgressUI();
 
 
         // 合成第九级，立即获胜
@@ -1150,6 +1312,7 @@ function processMergeQueue() {
                 LEVEL_COUNT
 
             );
+            finalBall.isRare = isRare;
 
             Composite.add(
                 engine.world,
@@ -1173,6 +1336,7 @@ function processMergeQueue() {
             newLevel
 
         );
+        newBall.isRare = isRare;
 
 
         // 新圆形稍微向上弹起
@@ -1222,6 +1386,10 @@ function checkGameState() {
         Composite.allBodies(engine.world);
 
     const now = Date.now();
+    if (now >= nextEventAt) {
+        triggerRandomEvent();
+        nextEventAt = now + 18000 + Math.random() * 16000;
+    }
 
     let dangerous = false;
 
@@ -1424,6 +1592,17 @@ function startGame() {
     lastDropTime = 0;
 
     gameOverTimer = 0;
+    comboCount = 0;
+    lastMergeAt = 0;
+    eventMultiplierUntil = 0;
+    nextMergeBonus = false;
+    nextEventAt = Date.now() + 12000 + Math.random() * 10000;
+    roundDrops = 0;
+    roundMerges = 0;
+    roundRare = 0;
+    dailyData.games = (dailyData.games || 0) + 1;
+    saveDaily();
+    updateProgressUI();
 
     pointerX = GAME_WIDTH / 2;
 
