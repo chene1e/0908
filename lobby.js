@@ -208,11 +208,24 @@
     cover.classList.add("hidden"); leaderboardView.classList.add("hidden"); gameView.classList.remove("hidden");
     $("startBtn").click();
   });
+  $("coverCollectionBtn").addEventListener("click", function () {
+    cover.classList.add("hidden");
+    gameView.classList.add("hidden");
+    leaderboardView.classList.add("hidden");
+    const collectionView = $("collectionView");
+    if (collectionView) {
+      collectionView.classList.remove("hidden");
+      if (typeof window.renderProgress === "function") window.renderProgress();
+      window.scrollTo(0, 0);
+    }
+  });
   $("coverLeaderboardBtn").addEventListener("click", function () {
     cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.remove("hidden"); loadLeaderboard();
   });
   function backToCover() { cover.classList.remove("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden"); }
   $("leaderboardBackBtn").addEventListener("click", backToCover);
+  const collectionBackBtn = $("collectionBackBtn");
+  if (collectionBackBtn) collectionBackBtn.addEventListener("click", backToCover);
   $("gameBackBtn").addEventListener("click", backToCover);
   $("leaderboardRefreshBtn").addEventListener("click", loadLeaderboard);
   $("scoreLeaderboardTab").addEventListener("click", function () { setRankingMode("score"); });
