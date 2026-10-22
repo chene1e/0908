@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f7f2e9">
-<title>群友消消乐</title><link rel="stylesheet" href="match.css?v=1">
+<title>群友消消乐</title><link rel="stylesheet" href="match.css?v=2">
 </head>
 <body>
 <main class="match-app">
@@ -19,7 +19,8 @@
     <div class="board-top"><span id="message" role="status" aria-live="polite">点选一个头像，再点相邻头像交换</span><button id="restart" type="button">重新开始</button></div>
     <div id="board" class="board" role="grid" aria-label="群友消消乐棋盘"></div>
   </section>
+  <section class="ranking-panel" aria-labelledby="rankingTitle"><h2 id="rankingTitle">🏆 本机排行榜</h2><p>按本浏览器保存的最高分排序</p><ol id="rankingList" class="ranking-list"></ol></section>
   <div id="result" class="result hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle"><div class="result-card"><div id="resultEmoji" class="result-emoji">🎉</div><h2 id="resultTitle">漂亮！</h2><p id="resultText"></p><button id="playAgain" type="button">再来一局</button><a href="index.html">返回游戏库</a></div></div>
 </main>
-<script src="match.js?v=2"></script>
+<script src="match.js?v=3"></script>
 </body></html>
