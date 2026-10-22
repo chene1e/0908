@@ -481,3 +481,154 @@ button {
   #gameView .info-card strong { font-size: 20px; }
   #gameView .buttons button { font-size: 12px; }
 }
+
+
+/* 游戏库首页与游戏选择卡片 */
+.library-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.library-cover h1 {
+  font-size: clamp(30px, 7vw, 38px);
+  line-height: 1.28;
+  letter-spacing: 1px;
+}
+.library-cover .cover-mark {
+  margin-top: 2px;
+  font-size: 58px;
+}
+.game-library-list {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 380px;
+  margin: 22px auto 8px;
+}
+.library-game-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 17px 15px;
+  text-align: left;
+  color: #49351f;
+  background: #fff;
+  border: 1px solid #eee0c8;
+  border-radius: 17px;
+  box-shadow: 0 5px 14px #49351a0d;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.library-game-card:hover {
+  filter: none;
+  transform: translateY(-2px);
+  border-color: #d9b36e;
+  box-shadow: 0 8px 20px #49351a14;
+}
+.library-game-icon {
+  display: flex;
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: #fff3d8;
+  font-size: 31px;
+}
+.library-game-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+.library-game-copy strong {
+  font-size: 17px;
+  color: #392b1e;
+}
+.library-game-copy small {
+  color: #887762;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.library-game-copy em {
+  margin-top: 3px;
+  color: #a86d1d;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+.library-game-arrow {
+  color: #c6a16b;
+  font-size: 29px;
+  font-weight: 400;
+}
+.development-card .library-game-icon {
+  background: #eaf0ff;
+}
+.development-card .library-game-copy em {
+  color: #687ca9;
+}
+.development-view {
+  min-height: calc(100vh - 40px);
+}
+.development-illustration {
+  margin: 44px 0 14px;
+  font-size: 64px;
+  letter-spacing: 6px;
+}
+.development-view h2 {
+  margin-bottom: 18px;
+}
+.development-status {
+  margin: 0 0 12px;
+  color: #b27a2b;
+  font-size: 19px;
+  font-weight: 800;
+}
+.development-copy {
+  margin: 0 auto;
+  max-width: 330px;
+  color: #857866;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.development-progress {
+  width: 82%;
+  max-width: 300px;
+  height: 8px;
+  margin: 26px auto 12px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #f1e8d9;
+}
+.development-progress span {
+  display: block;
+  width: 36%;
+  height: 100%;
+  border-radius: inherit;
+  background: #d9a24c;
+  animation: development-shimmer 2s ease-in-out infinite alternate;
+}
+.development-footnote {
+  color: #a69a88;
+  font-size: 12px;
+}
+.library-back-button {
+  width: auto;
+  margin: -8px 0 10px;
+  padding-left: 0;
+}
+@keyframes development-shimmer {
+  from { width: 28%; }
+  to { width: 42%; }
+}
+@media(max-width:400px) {
+  .library-cover h1 { font-size: 29px; }
+  .game-library-list { gap: 11px; margin-top: 18px; }
+  .library-game-card { gap: 11px; padding: 14px 12px; }
+  .library-game-icon { flex-basis: 50px; width: 50px; height: 50px; font-size: 27px; }
+  .library-game-copy strong { font-size: 15px; }
+}
