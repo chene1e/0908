@@ -411,3 +411,14 @@ button {
 .leaderboard-tab { flex:1; min-width:0; padding:11px 8px; border:1px solid #e6dfd3; border-radius:10px; background:#fff; color:#675d4e; font-size:13px; font-weight:600; cursor:pointer; }
 .leaderboard-tab.active { background:#2f5d50; border-color:#2f5d50; color:#fff; }
 .leaderboard-tab:focus-visible { outline:2px solid #d5a84c; outline-offset:2px; }
+
+
+/* 排行榜每页 10 条 */
+.leaderboard-pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin:14px 0; }
+.leaderboard-pagination span { color:#817565; font-size:12px; text-align:center; }
+.leaderboard-pagination .outline-button { padding:8px 12px; font-size:12px; }
+.leaderboard-pagination button:disabled { opacity:.4; cursor:not-allowed; }
+@media(max-width:360px) {
+ .leaderboard-pagination { gap:7px; }
+ .leaderboard-pagination .outline-button { padding:8px 9px; }
+}
