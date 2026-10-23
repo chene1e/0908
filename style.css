@@ -981,3 +981,41 @@ button {
   content: none !important;
   display: none !important;
 }
+
+
+/* 合成大群友：经典/海克斯模式选择与强化卡 */
+.merge-mode-picker{max-width:360px;margin:18px auto 8px;padding:13px;text-align:left;border:1px solid #eadbc3;border-radius:14px;background:#fffdf8}
+.merge-mode-label{margin:0 0 9px;color:#786344;font-size:12px;font-weight:800}
+.merge-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.merge-mode-option{display:flex;flex-direction:column;gap:5px;min-width:0;min-height:65px;padding:10px 8px;border:1px solid #e5dac6;border-radius:10px;background:#fff;color:#5d503d;text-align:left;box-shadow:none;cursor:pointer}
+.merge-mode-option strong{font-size:13px}
+.merge-mode-option span{color:#8c8171;font-size:10px;line-height:1.4}
+.merge-mode-option.active{border-color:#c58c2d;background:#fff4d9;box-shadow:inset 0 0 0 1px #c58c2d;color:#6c4512}
+.merge-mode-hint{margin:9px 0 0;color:#887b67;font-size:11px;line-height:1.45}
+.hextech-run-status{margin:0 0 12px;padding:11px 13px;border:1px solid #b58b35;border-radius:12px;background:linear-gradient(120deg,#fff6d9,#fffdf6);color:#543a10}
+.hextech-run-status strong{display:block;font-size:13px}
+.hextech-run-status>span{display:block;margin-top:4px;font-size:11px;color:#80632e}
+.hextech-owned-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.hextech-owned-chip{padding:4px 7px;border-radius:999px;background:#f0e1bd;color:#634414;font-size:10px}
+.hextech-overlay{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:18px;background:rgba(16,14,25,.78);backdrop-filter:blur(5px)}
+.hextech-overlay.hidden{display:none!important}
+.hextech-panel{width:min(100%,760px);max-height:calc(100vh - 36px);overflow-y:auto;padding:24px;border:1px solid #d8b35e;border-radius:20px;background:linear-gradient(150deg,#27233c,#17192d 72%);color:#f8f4e9;box-shadow:0 20px 70px #0008;text-align:center}
+.hextech-eyebrow{margin:0 0 7px;color:#f4cd6b;font-size:10px;font-weight:900;letter-spacing:3px}
+.hextech-panel h2{margin:0;color:#ffe29a;font-size:clamp(22px,5vw,30px)}
+.hextech-offer-hint{margin:8px 0 18px;color:#c6bfd9;font-size:12px;line-height:1.5}
+.hextech-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.hextech-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0;min-height:190px;padding:16px 13px;border:1px solid #6b6688;border-radius:14px;background:linear-gradient(160deg,#322d4d,#211f37);color:#f8f4e9;text-align:left;white-space:normal;box-shadow:none;transition:transform .12s,border-color .12s,background .12s}
+.hextech-card:hover{transform:translateY(-3px);filter:none;border-color:#f6d57c;background:linear-gradient(160deg,#403859,#26213f)}
+.hextech-card:focus-visible{outline:3px solid #ffe29a;outline-offset:3px}
+.hextech-tier{padding:4px 7px;border-radius:99px;font-size:10px;font-weight:900}
+.hextech-card strong{font-size:17px;line-height:1.35}
+.hextech-card p{margin:0;color:#cbc6da;font-size:12px;line-height:1.6}
+.hextech-card.tier-silver{border-top:4px solid #bccbda}
+.hextech-card.tier-silver .hextech-tier{background:#435063;color:#e8f2fb}
+.hextech-card.tier-gold{border-top:4px solid #e5b84d}
+.hextech-card.tier-gold .hextech-tier{background:#5b4925;color:#ffe29a}
+.hextech-card.tier-prismatic{border-top:4px solid #d99cff}
+.hextech-card.tier-prismatic .hextech-tier{background:#513c64;color:#f1d3ff}
+.hextech-card small{margin-top:auto;color:#9f98b9;font-size:10px}
+.hextech-footnote{margin:16px 0 0;color:#aaa4c2;font-size:10px;line-height:1.5}
+@media(max-width:560px){.hextech-panel{padding:19px 14px}.hextech-choices{grid-template-columns:1fr;gap:9px}.hextech-card{min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;padding:12px}.hextech-card .hextech-tier{grid-column:1;grid-row:1;align-self:start}.hextech-card strong{grid-column:2;grid-row:1;align-self:center}.hextech-card p,.hextech-card small{grid-column:1/-1}.hextech-card small{margin-top:0}}
