@@ -1117,3 +1117,8 @@ button {
 .hextech-augment-description{display:block;margin-top:5px;color:#5e5548;font-size:11px;line-height:1.55;white-space:normal;overflow-wrap:anywhere}
 .hextech-augment-stat-row .hextech-rank-meta{margin-top:5px}
 @media(max-width:420px){.hextech-augment-description{font-size:10px;line-height:1.5}}
+
+
+/* 首页最近更新时间与更新摘要 */
+.site-update-note{margin:12px auto 0;max-width:360px;color:#938675;font-size:11px;line-height:1.7;text-align:center}
+.site-update-note strong{color:#76664f;font-weight:700}
