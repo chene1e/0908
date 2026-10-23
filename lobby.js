@@ -24,7 +24,7 @@
   }
   function saveProfile() {
     const name = nameInput.value.trim();
-    if (!name) { profileHint.textContent = "先输入一个群昵称吧。"; nameInput.focus(); return false; }
+    if (!name) { profileHint.textContent = "请先在游戏库首页设置全站昵称。"; window.location.href = "index.html#global-profile"; return false; }
     const saved = readProfile();
     // 未重新选择头像时保留之前保存的头像，避免被空字符串覆盖。
     const avatar = avatarData || saved.avatar || "";
