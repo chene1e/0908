@@ -662,11 +662,30 @@
   if (averageBoardBackButton) averageBoardBackButton.addEventListener("click", backToCover);
   const averageBoardRefreshButton = $("hextechAverageLeaderboardRefreshBtn");
   if (averageBoardRefreshButton) averageBoardRefreshButton.addEventListener("click", loadHextechAverageLeaderboard);
+  let returnToGameAfterLeaderboard = false;
   function backToCover() {
-    cover.classList.remove("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
+    leaderboardView.classList.add("hidden");
     if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
     if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
+    if (returnToGameAfterLeaderboard) {
+      returnToGameAfterLeaderboard = false;
+      cover.classList.add("hidden");
+      gameView.classList.remove("hidden");
+      window.scrollTo(0, 0);
+      return;
+    }
+    cover.classList.remove("hidden"); gameView.classList.add("hidden");
   }
+  const gameOverLeaderboardButton = $("message-leaderboard");
+  if (gameOverLeaderboardButton) gameOverLeaderboardButton.addEventListener("click", function () {
+    returnToGameAfterLeaderboard = true;
+    cover.classList.add("hidden");
+    gameView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
+    leaderboardView.classList.remove("hidden");
+    setLeaderboardType("score");
+    window.scrollTo(0, 0);
+  });
   $("leaderboardBackBtn").addEventListener("click", backToCover);
   const collectionBackBtn = $("collectionBackBtn");
   if (collectionBackBtn) collectionBackBtn.addEventListener("click", backToCover);
