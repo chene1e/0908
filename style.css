@@ -974,3 +974,10 @@ button {
   pointer-events: none !important;
 }
 .global-profile-avatar-camera { display: none !important; }
+
+
+/* 最终修复：头像角标全部关闭，避免旧的 ::after 规则重新显示相机图标。 */
+.global-profile-avatar::after {
+  content: none !important;
+  display: none !important;
+}
