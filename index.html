@@ -152,28 +152,26 @@
     <button id="leaderboardBackBtn" class="back-button">← 返回封面</button>
     <p class="cover-kicker">GLOBAL RANKING</p>
     <h2>全球排行榜</h2>
-    <div class="leaderboard-tabs" role="tablist" aria-label="排行榜类型">
-      <button id="scoreLeaderboardTab" class="leaderboard-tab active" type="button" aria-pressed="true">🏆 最高分榜</button>
-      <button id="timeLeaderboardTab" class="leaderboard-tab" type="button" aria-pressed="false">⚡ Level 9 最快榜</button>
+    <div class="leaderboard-tabs leaderboard-tabs-three" role="tablist" aria-label="排行榜类型">
+      <button id="scoreLeaderboardTab" class="leaderboard-tab active" type="button" aria-pressed="true">🏆 经典模式排行榜</button>
+      <button id="timeLeaderboardTab" class="leaderboard-tab" type="button" aria-pressed="false">⚡ 经典模式最速榜</button>
+      <button id="hextechLeaderboardTab" class="leaderboard-tab" type="button" aria-pressed="false">✨ 海克斯模式排行榜</button>
     </div>
-    <p class="leaderboard-note" id="leaderboardStatus">正在读取排行榜…</p>
-    <ol id="leaderboardList" class="leaderboard-list"></ol>
-    <div class="leaderboard-pagination">
-      <button id="leaderboardPrevBtn" class="outline-button" type="button" disabled>上一页</button>
-      <span id="leaderboardPageInfo" aria-live="polite">第 1 / 1 页 · 共 0 条</span>
-      <button id="leaderboardNextBtn" class="outline-button" type="button" disabled>下一页</button>
+    <div id="classicLeaderboardContent">
+      <p class="leaderboard-note" id="leaderboardStatus">正在读取排行榜…</p>
+      <ol id="leaderboardList" class="leaderboard-list"></ol>
+      <div class="leaderboard-pagination">
+        <button id="leaderboardPrevBtn" class="outline-button" type="button" disabled>上一页</button>
+        <span id="leaderboardPageInfo" aria-live="polite">第 1 / 1 页 · 共 0 条</span>
+        <button id="leaderboardNextBtn" class="outline-button" type="button" disabled>下一页</button>
+      </div>
     </div>
-    <button id="leaderboardRefreshBtn" class="primary-button">刷新排行榜</button>
-  </section>
-
-  <section id="hextechLeaderboardView" class="panel-view hidden">
-    <button id="hextechLeaderboardBackBtn" class="back-button" type="button">← 返回封面</button>
-    <p class="cover-kicker">HEXTECH GLOBAL RANKING</p>
-    <h2>⚡ 海克斯全球排行榜</h2>
-    <p class="hextech-board-intro">仅统计海克斯模式成绩，强化组合和得分各不相同。显示全球前 20 名。</p>
-    <p id="hextechLeaderboardStatus" class="leaderboard-note" role="status" aria-live="polite">正在读取海克斯全球排行榜…</p>
-    <ol id="hextechLeaderboardList" class="hextech-leaderboard-list"></ol>
-    <button id="hextechLeaderboardRefreshBtn" class="primary-button" type="button">刷新海克斯排行榜</button>
+    <div id="hextechLeaderboardContent" class="hidden">
+      <p class="hextech-board-intro">仅统计海克斯模式成绩，强化组合和得分各不相同。显示全球前 20 名。</p>
+      <p id="hextechLeaderboardStatus" class="leaderboard-note" role="status" aria-live="polite">正在读取海克斯全球排行榜…</p>
+      <ol id="hextechLeaderboardList" class="hextech-leaderboard-list"></ol>
+    </div>
+    <button id="leaderboardRefreshBtn" class="primary-button" type="button">刷新当前排行榜</button>
   </section>
 
   <section id="hextechAverageLeaderboardView" class="panel-view hidden">
