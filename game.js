@@ -47,7 +47,7 @@ const RADII = [
 const LEVEL_SCORES = [
     1, 2, 4, 8, 16, 32, 64, 128, 256
 ];
-const HEXTECH_MILESTONES = [4, 12, 22];
+const HEXTECH_MILESTONES = [3, 6, 9];
 const HEXTECH_AUGMENTS = [
  // 银色：稳定收益、宽松操作与前期成长
  {id:"cashBack",tier:"silver",tierName:"银色强化",name:"合成返现",description:"每次合成额外获得 18 分。",note:"稳定收益"},
@@ -211,6 +211,7 @@ let roundDrops = 0;
 let roundMerges = 0;
 let roundRare = 0;
 let hextechModeActive = false, hextechOwned = [], hextechOffersTaken = 0, hextechOfferedAugments = [];
+let hextechMilestonesReached = new Set(), hextechPendingMilestones = [], hextechPendingWin = false;
 let hextechClearUsed = new Set();
 let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus = 0;
 let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
@@ -465,15 +466,18 @@ function chooseHextechAugment(a) {
     renderHextechStatus(); showToast("⚡ 海克斯生效：" + a.name);
     if (offerHextechIfDue()) return;
     paused = false;
-    if (runner && engine && started && !gameOver) Runner.run(runner, engine);
+    if (hextechPendingWin && hextechPendingMilestones.length === 0) { hextechPendingWin = false; winGame(); return; }
+    if (runner && engine && started && !gameOver && !won) Runner.run(runner, engine);
 }
 function offerHextechIfDue() {
-    if (!hextechModeActive || !started || gameOver || hextechOffersTaken >= 3 || roundMerges < HEXTECH_MILESTONES[hextechOffersTaken]) return false;
+    if (!hextechModeActive || !started || gameOver || hextechOffersTaken >= 3 || hextechPendingMilestones.length === 0) return false;
+    const milestoneLevel = hextechPendingMilestones.shift();
     if (!hextechOverlay || !hextechChoices) return false;
     paused = true; gameOverTimer = 0; if (runner) Runner.stop(runner);
     hextechChoices.replaceChildren();
-    if (hextechOfferHint) hextechOfferHint.textContent = "第 " + (hextechOffersTaken + 1) + " 次强化 · " + ["银色","金色","棱彩"][hextechOffersTaken] + "品质 · 已合成 " + roundMerges + " 次。同一轮只出现同品质强化，效果持续到本局结束。";
-    const tierForOffer = ["silver", "gold", "prismatic"][hextechOffersTaken];
+    const tierForOffer = ["silver", "gold", "prismatic"][Math.floor(Math.random() * 3)];
+    const tierLabel = {silver:"银色",gold:"金色",prismatic:"棱彩"}[tierForOffer];
+    if (hextechOfferHint) hextechOfferHint.textContent = "第 " + (hextechOffersTaken + 1) + " 次强化 · " + tierLabel + "品质 · 首次合成到 Level " + milestoneLevel + " 触发。品质随机，可能重复。";
     const pool = HEXTECH_AUGMENTS.filter(a => a.tier === tierForOffer && !hextechOwned.some(item => item.id === a.id));
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const offered = pool.slice(0, 3);
@@ -573,6 +577,7 @@ function submitHextechRunScore() {
 }
 function resetHextechRun() {
     hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0; hextechOfferedAugments = []; hextechClearUsed = new Set();
+    hextechMilestonesReached = new Set(); hextechPendingMilestones = []; hextechPendingWin = false;
     hextechScoreMultiplier = 1; hextechBonusPerMerge = 0; hextechRareChanceBonus = 0; hextechRareScoreMultiplier = 3;
     hextechComboWindowMs = 4500; hextechComboThreshold = 3; hextechComboMultiplier = 1.5;
     hextechDropCooldownMs = 250; hextechDropRecoveryMs = 450; hextechEventFrequencyMultiplier = 1;
@@ -1541,6 +1546,10 @@ function processMergeQueue() {
 
 
         const newLevel = Math.min(item.level + 1, LEVEL_COUNT);
+        if (hextechModeActive && HEXTECH_MILESTONES.includes(newLevel) && !hextechMilestonesReached.has(newLevel)) {
+            hextechMilestonesReached.add(newLevel);
+            hextechPendingMilestones.push(newLevel);
+        }
 
 
         // 新圆形的位置取两个旧圆形的中间
@@ -1643,6 +1652,11 @@ function processMergeQueue() {
                 finalBall
             );
 
+            if (hextechModeActive && hextechPendingMilestones.length > 0) {
+                hextechPendingWin = true;
+                if (offerHextechIfDue()) return;
+                hextechPendingWin = false;
+            }
             winGame();
 
             return;
