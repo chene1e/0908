@@ -634,12 +634,6 @@
     leaderboardView.classList.remove("hidden");
     setLeaderboardType("score");
   });
-  $("coverHextechLeaderboardBtn").addEventListener("click", function () {
-    cover.classList.add("hidden"); gameView.classList.add("hidden");
-    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
-    leaderboardView.classList.remove("hidden");
-    setLeaderboardType("hextech");
-  });
   const averageBoardButton = $("coverHextechAverageLeaderboardBtn");
   if (averageBoardButton) averageBoardButton.addEventListener("click", function () {
     cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
