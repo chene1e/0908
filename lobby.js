@@ -65,14 +65,17 @@
   async function remoteRequest(path, options) {
     const opts = options || {};
     const method = String(opts.method || "GET").toUpperCase();
-    const attempts = method === "GET" ? 3 : 1;
+    const attempts = method === "GET" ? (Number.isFinite(opts.retries) ? Math.max(1, opts.retries) : 3) : 1;
+    const timeoutMs = Number.isFinite(opts.timeoutMs) ? Math.max(1000, opts.timeoutMs) : 15000;
     let lastError = null;
     for (let attempt = 0; attempt < attempts; attempt++) {
       const headers = Object.assign({ apikey: config.supabaseAnonKey, "Content-Type": "application/json" }, opts.headers || {});
       const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-      const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
+      const timeout = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
       try {
         const requestOptions = Object.assign({}, opts, { headers });
+        delete requestOptions.timeoutMs;
+        delete requestOptions.retries;
         if (!opts.signal && controller) requestOptions.signal = controller.signal;
         const response = await fetch(config.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/" + path, requestOptions);
         if (!response.ok) {
@@ -90,7 +93,7 @@
         const retryable = method === "GET" && attempt < attempts - 1
           && (!error.status || error.status >= 500);
         if (!retryable) {
-          if (error && error.name === "AbortError") throw new Error("云端请求超时（15 秒），请检查网络后重试。");
+          if (error && error.name === "AbortError") throw new Error("云端请求超时（" + Math.round(timeoutMs / 1000) + " 秒），请检查网络后重试。");
           throw error;
         }
         await new Promise(resolve => setTimeout(resolve, 350 * (attempt + 1)));
@@ -216,21 +219,28 @@
     const requestId = ++hextechLeaderboardRequest;
     hextechLeaderboardStatus.textContent = "正在读取海克斯全球排行榜…";
     const cached = (() => { try { return JSON.parse(sessionStorage.getItem(hextechLeaderboardCacheKey) || "null"); } catch (_) { return null; } })();
-    if (Array.isArray(cached)) renderHextechLeaderboard(cached);
+    if (Array.isArray(cached)) {
+      renderHextechLeaderboard(cached);
+      hextechLeaderboardStatus.textContent = "已显示缓存排行榜，正在快速更新云端成绩…";
+    }
     try {
       if (!hasRemote()) throw new Error("云端数据库配置不可用。");
-      await syncPendingHextechScores();
-      const rows = await remoteRequest("merge_hextech_scores?select=run_id,player_id,name,avatar,score,merge_count,highest_level,augments,created_at&order=score.desc,created_at.asc&limit=20");
+      // 先读榜单，不等待待上传成绩同步，避免上传队列拖慢展示。
+      const rows = await remoteRequest("merge_hextech_scores?select=run_id,player_id,name,avatar,score,merge_count,highest_level,augments,created_at&order=score.desc,created_at.asc&limit=20", { timeoutMs: 8000, retries: 1 });
       if (requestId !== hextechLeaderboardRequest) return;
       renderHextechLeaderboard(rows);
       try { sessionStorage.setItem(hextechLeaderboardCacheKey, JSON.stringify(rows)); } catch (_) {}
       hextechLeaderboardStatus.textContent = "海克斯全球榜 · 前 " + rows.length + " 名；仅统计海克斯模式，成绩按分数从高到低排序。";
     } catch (error) {
       if (requestId !== hextechLeaderboardRequest) return;
-      const local = readHextechLocalScores().sort((a,b)=>Number(b.score||0)-Number(a.score||0)).slice(0,20);
-      renderHextechLeaderboard(local);
       const detail = error && error.message ? String(error.message).slice(0,100) : "网络连接失败";
-      hextechLeaderboardStatus.textContent = "⚠ 云端排行榜暂不可用（" + detail + "）。当前显示的是本机记录，不代表全球排名。";
+      if (Array.isArray(cached)) {
+        hextechLeaderboardStatus.textContent = "⚠ 云端更新失败，当前仍显示上次缓存的全球榜（" + detail + "）。可点击刷新重试。";
+      } else {
+        const local = readHextechLocalScores().sort((a,b)=>Number(b.score||0)-Number(a.score||0)).slice(0,20);
+        renderHextechLeaderboard(local);
+        hextechLeaderboardStatus.textContent = "⚠ 云端排行榜暂不可用（" + detail + "）。当前显示的是本机记录，不代表全球排名。";
+      }
     }
   }
   const HEXTECH_AUGMENT_CATALOG = [
@@ -299,17 +309,21 @@
     const status = $("hextechAverageLeaderboardStatus");
     if (!status) return;
     status.textContent = "正在统计全球平均分…";
-    const cached = (() => { try { return JSON.parse(sessionStorage.getItem("mergeHextechAverageLeaderboardCacheV2") || "null"); } catch (_) { return null; } })();
-    if (Array.isArray(cached)) renderHextechAverageLeaderboard(cached);
+    const cached = (() => { try { return JSON.parse(sessionStorage.getItem("mergeHextechAverageLeaderboardCacheV1") || "null"); } catch (_) { return null; } })();
+    if (Array.isArray(cached)) {
+      renderHextechAverageLeaderboard(cached);
+      status.textContent = "已显示缓存统计，正在更新最近成绩…";
+    }
     try {
       if (!hasRemote()) throw new Error("云端数据库配置不可用。");
-      await syncPendingHextechScores();
       const allRows = [];
       const pageSize = 1000;
-      const maxRows = 20000;
+      // 平均分统计使用最近 5,000 局，避免一次打开排行榜连续拉取最多 20 个大请求。
+      const maxRows = 5000;
       for (let offset = 0; offset < maxRows; offset += pageSize) {
         const batch = await remoteRequest(
-          "merge_hextech_scores?select=player_id,name,score,created_at,augments,offered_augments&order=created_at.desc&limit=" + pageSize + "&offset=" + offset
+          "merge_hextech_scores?select=player_id,name,score,created_at,augments,offered_augments&order=created_at.desc&limit=" + pageSize + "&offset=" + offset,
+          { timeoutMs: 8000, retries: 1 }
         );
         if (!Array.isArray(batch)) throw new Error("云端返回的数据格式不正确。");
         allRows.push(...batch);
@@ -317,13 +331,17 @@
       }
       renderHextechAverageLeaderboard(allRows);
       try { sessionStorage.setItem("mergeHextechAverageLeaderboardCacheV1", JSON.stringify(allRows)); } catch (_) {}
-      status.textContent = "已统计 " + allRows.length.toLocaleString() + " 局海克斯成绩；按每个强化被选择后的平均分排序。选择率根据已记录的强化出现次数计算，旧对局未记录出现选项，因此不计入选择率分母。";
-      if (allRows.length >= maxRows) status.textContent += " 当前按最近 20,000 条成绩估算平均分。";
+      status.textContent = "已统计最近 " + allRows.length.toLocaleString() + " 局海克斯成绩；按每个强化被选择后的平均分排序。选择率根据已记录的强化出现次数计算，旧对局未记录出现选项，因此不计入选择率分母。";
+      if (allRows.length >= maxRows) status.textContent += " 当前按最近 5,000 条成绩估算平均分。";
     } catch (error) {
-      const localRows = readHextechLocalScores();
-      renderHextechAverageLeaderboard(localRows);
       const detail = error && error.message ? String(error.message).slice(0,100) : "网络连接失败";
-      status.textContent = "⚠ 云端统计暂不可用（" + detail + "）。当前仅按本机历史记录统计，不代表全球排名。";
+      if (Array.isArray(cached)) {
+        status.textContent = "⚠ 云端更新失败，当前仍显示上次缓存的统计（" + detail + "）。";
+      } else {
+        const localRows = readHextechLocalScores();
+        renderHextechAverageLeaderboard(localRows);
+        status.textContent = "⚠ 云端统计暂不可用（" + detail + "）。当前仅按本机历史记录统计，不代表全球排名。";
+      }
     }
   }
 
