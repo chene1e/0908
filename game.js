@@ -484,6 +484,8 @@ function offerHextechIfDue() {
     const pool = HEXTECH_AUGMENTS.filter(a => a.tier === tierForOffer && !hextechOwned.some(item => item.id === a.id));
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const offered = pool.slice(0, 3);
+    // 记录本轮弹窗中所有曾经展示过的强化，避免刷新后再次出现已看过的选项。
+    const seenInThisOffer = new Set(offered.map(augment => augment.id));
     const recordOfferedAugment = augment => {
         if (!augment) return;
         hextechOfferedAugments.push({id:augment.id, tier:augment.tier, tierName:augment.tierName, name:augment.name});
@@ -513,8 +515,7 @@ function offerHextechIfDue() {
             const candidates = HEXTECH_AUGMENTS.filter(a =>
                 a.tier === tierForOffer &&
                 !hextechOwned.some(item => item.id === a.id) &&
-                !offered.some((item, offeredIndex) => offeredIndex !== index && item.id === a.id) &&
-                a.id !== currentAugment.id
+                !seenInThisOffer.has(a.id)
             );
             if (!candidates.length) {
                 refresh.disabled = true;
@@ -523,6 +524,7 @@ function offerHextechIfDue() {
             }
             currentAugment = candidates[Math.floor(Math.random() * candidates.length)];
             offered[index] = currentAugment;
+            seenInThisOffer.add(currentAugment.id);
             recordOfferedAugment(currentAugment);
             refreshed = true;
             renderChoice(card, currentAugment);
