@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>姐妹兄弟全上岸游戏库</title>
-<link rel="stylesheet" href="style.css?v=20261023-clearbutton1">
+<link rel="stylesheet" href="style.css?v=20261023-endboard1">
 <script src="identity.js?v=20261023-v1"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
@@ -212,7 +212,10 @@
           <p id="submitScoreHint">本局成绩将被记录。</p>
           <button id="submitScoreBtn" class="secondary-button">提交本局成绩</button>
         </div>
-        <button id="message-restart">再玩一次</button>
+        <div class="message-actions">
+          <button id="message-restart" type="button">再玩一次</button>
+          <button id="message-leaderboard" class="message-leaderboard-button" type="button">查看排行榜</button>
+        </div>
       </div>
       <div id="hextechOverlay" class="hextech-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="hextechTitle">
         <div class="hextech-panel">
@@ -251,7 +254,7 @@
 </div>
 <script defer src="config.js?v=20261022-stop2"></script>
 <script defer src="game.js?v=20261023-prismaticrevert1"></script>
-<script defer src="lobby.js?v=20261023-prismaticrevert1"></script>
+<script defer src="lobby.js?v=20261023-endboard1"></script>
 <script defer src="feedback.js?v=20261022-feedback1"></script>
 <script defer src="site-profile.js?v=20261023-avatarfix2"></script>
 <link rel="stylesheet" href="feedback.css?v=20261022-feedback1">
