@@ -197,10 +197,9 @@
       const info = document.createElement("div"); info.className = "hextech-rank-info";
       const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = row.name || "神秘群友";
       const meta = document.createElement("small"); meta.className = "hextech-rank-meta";
-      const effect = document.createElement("small"); effect.className = "hextech-augment-description"; const rowAugments = Array.isArray(row.augments) ? row.augments : []; effect.textContent = rowAugments.map(item => item && (item.description || item.name || item.id)).filter(Boolean).join(" · ") || "强化效果说明暂缺";
       const when = row.created_at ? new Date(row.created_at).toLocaleString() : "本机记录";
       meta.textContent = "最高等级 Lv." + Number(row.highest_level || 1) + " · 合成 " + Number(row.merge_count || 0) + " 次 · " + when;
-      info.append(name,effect,meta);
+      info.append(name,meta);
       const build = document.createElement("div"); build.className = "hextech-rank-build";
       const augments = Array.isArray(row.augments) ? row.augments : [];
       augments.slice(0,3).forEach(augment => {
@@ -293,11 +292,12 @@
       icon.setAttribute("aria-label", augment.tierName || "海克斯强化");
       const info = document.createElement("div"); info.className = "hextech-rank-info";
       const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = augment.name;
+      const description = document.createElement("small"); description.className = "hextech-augment-description"; description.textContent = augment.description || "强化效果说明暂缺";
       const meta = document.createElement("small"); meta.className = "hextech-rank-meta";
       const rate = augment.selectionRate === null ? "选择率待统计" : "选择率 " + (augment.selectionRate * 100).toFixed(1) + "%";
       const best = augment.selectedRuns ? "最高分 " + augment.bestScore.toLocaleString() : "最高分 暂无记录";
       meta.textContent = (augment.tierName || "海克斯强化") + " · " + rate + " · 被选择 " + augment.selectedRuns + " 局 · " + best;
-      info.append(name,meta);
+      info.append(name,description,meta);
       const metric = document.createElement("div"); metric.className = "hextech-average-metric";
       const average = document.createElement("strong"); average.textContent = augment.average === null ? "暂无" : Math.round(augment.average).toLocaleString() + " 分";
       const label = document.createElement("small"); label.textContent = "选择后平均分";
