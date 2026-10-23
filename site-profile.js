@@ -79,6 +79,7 @@
     const file = input.files && input.files[0];
     if (!file) return;
     const previousProfile = window.GameIdentity.getProfile();
+    const typedName = $("sitePlayerName").value;
     $("siteAvatarButton").disabled = true;
     $("siteProfileStatus").textContent = "正在处理头像并保存…";
     try {
@@ -86,10 +87,12 @@
       const result = window.GameIdentity.saveProfile({ avatar });
       if (!result.ok) {
         paint(previousProfile);
+        $("sitePlayerName").value = typedName;
         $("siteProfileStatus").textContent = "保存失败：浏览器存储空间可能不足，原头像保持不变。";
         return;
       }
       paint(result.profile);
+      $("sitePlayerName").value = typedName;
       $("siteProfileStatus").textContent = "✓ 头像已自动保存！所有游戏将共用新头像，昵称和游客 ID 不变。";
     } catch (error) {
       paint(previousProfile);
