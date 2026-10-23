@@ -9,6 +9,9 @@
   let avatarData = "";
   let currentScore = null;
   let scoreSubmitted = false;
+  let currentSubmitRow = null;
+  let pendingScoreSyncBusy = false;
+  const pendingScoreQueueKey = "groupGamePendingScoresV1";
   let currentElapsedMs = null;
   let currentRoundWon = false;
   let rankingMode = "score";
@@ -51,22 +54,43 @@
   }
   async function remoteRequest(path, options) {
     const opts = options || {};
-    // sb_publishable_* 是新式 publishable key，不是 JWT。
-    // 只放在 apikey 请求头，不要把它作为 Bearer token 发送。
-    const headers = Object.assign({
-      apikey: config.supabaseAnonKey,
-      "Content-Type": "application/json"
-    }, opts.headers || {});
-    const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({}, opts, { headers }));
-    if (!response.ok) {
-      let detail = "";
-      try { detail = await response.text(); } catch (_) {}
-      throw new Error("HTTP " + response.status + (detail ? ": " + detail.slice(0, 240) : ""));
+    const method = String(opts.method || "GET").toUpperCase();
+    const attempts = method === "GET" ? 3 : 1;
+    let lastError = null;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      const headers = Object.assign({ apikey: config.supabaseAnonKey, "Content-Type": "application/json" }, opts.headers || {});
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
+      try {
+        const requestOptions = Object.assign({}, opts, { headers });
+        if (!opts.signal && controller) requestOptions.signal = controller.signal;
+        const response = await fetch(config.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/" + path, requestOptions);
+        if (!response.ok) {
+          let detail = "";
+          try { detail = await response.text(); } catch (_) {}
+          const error = new Error("HTTP " + response.status + (detail ? ": " + detail.slice(0, 240) : ""));
+          error.status = response.status;
+          throw error;
+        }
+        if (response.status === 204) return [];
+        const text = await response.text();
+        return text ? JSON.parse(text) : [];
+      } catch (error) {
+        lastError = error;
+        const retryable = method === "GET" && attempt < attempts - 1
+          && (!error.status || error.status >= 500);
+        if (!retryable) {
+          if (error && error.name === "AbortError") throw new Error("云端请求超时（15 秒），请检查网络后重试。");
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 350 * (attempt + 1)));
+      } finally {
+        if (timeout) clearTimeout(timeout);
+      }
     }
-    if (response.status === 204) return [];
-    const text = await response.text();
-    return text ? JSON.parse(text) : [];
+    throw lastError || new Error("云端请求失败，请稍后重试。");
   }
+
   function formatElapsed(ms) {
     const seconds = Number(ms) / 1000;
     return Number.isFinite(seconds) && seconds >= 0 ? seconds.toFixed(2) + " 秒" : "—";
@@ -151,14 +175,77 @@
         renderRows(cachedLeaderboardRows, rankingMode);
         leaderboardStatus.textContent = "当前为本机预览榜；配置在线数据库后，所有人才能共享成绩。";
       }
-    } catch (_) {
+    } catch (loadError) {
       if (!cached) {
         cachedLeaderboardRows = localScores();
         renderRows(cachedLeaderboardRows, rankingMode);
       }
+      const detail = loadError && loadError.message ? String(loadError.message).slice(0, 100) : "网络连接失败";
       leaderboardStatus.textContent = cached
-        ? "已显示缓存排行榜；云端更新失败，稍后可刷新。"
-        : "⚠ 在线排行榜读取失败，当前显示本机记录（不代表全球榜）。请检查网络后刷新。";
+        ? "已显示缓存排行榜；云端更新失败（" + detail + "），可稍后刷新。"
+        : "⚠ 在线排行榜读取失败（" + detail + "），当前显示本机记录（不代表全球榜）。请检查网络后刷新。";
+    }
+  }
+
+  function readPendingScoreQueue() {
+    try {
+      const value = JSON.parse(localStorage.getItem(pendingScoreQueueKey) || "[]");
+      return Array.isArray(value) ? value.filter(row => row && row.created_at && row.score !== undefined) : [];
+    } catch (_) { return []; }
+  }
+  function writePendingScoreQueue(rows) {
+    try { localStorage.setItem(pendingScoreQueueKey, JSON.stringify(rows.slice(-100))); } catch (_) {}
+  }
+  function queueScoreRow(row) {
+    const queue = readPendingScoreQueue();
+    if (!queue.some(item => item.player_id === row.player_id && item.created_at === row.created_at)) queue.push(row);
+    writePendingScoreQueue(queue);
+  }
+  async function syncPendingScoreQueue() {
+    if (pendingScoreSyncBusy) return { ok: false, error: new Error("成绩同步正在进行中。"), pending: readPendingScoreQueue().length };
+    pendingScoreSyncBusy = true;
+    try {
+      if (!hasRemote()) throw new Error("云端数据库配置不可用。");
+      while (true) {
+        const queue = readPendingScoreQueue();
+        if (!queue.length) return { ok: true, pending: 0 };
+        const row = queue[0];
+        let saved = false;
+        let lastError = null;
+        try {
+          await remoteRequest("game_scores", {
+            method: "POST",
+            headers: { Prefer: "return=minimal" },
+            body: JSON.stringify(row)
+          });
+          saved = true;
+        } catch (error) {
+          lastError = error;
+          // The server may have committed before a connection dropped; verify this exact record before retrying.
+          try {
+            const verify = await remoteRequest(
+              "game_scores?select=id,player_id,score,created_at"
+              + "&player_id=eq." + encodeURIComponent(String(row.player_id || ""))
+              + "&score=eq." + encodeURIComponent(String(row.score))
+              + "&created_at=eq." + encodeURIComponent(row.created_at)
+              + "&limit=1"
+            );
+            saved = Array.isArray(verify) && verify.some(item =>
+              String(item.player_id || "") === String(row.player_id || "")
+              && Number(item.score) === Number(row.score)
+              && String(item.created_at || "") === String(row.created_at)
+            );
+          } catch (_) {}
+        }
+        if (!saved) return { ok: false, error: lastError || new Error("上传未被云端确认。"), pending: queue.length };
+        writePendingScoreQueue(readPendingScoreQueue().filter(item =>
+          !(item.player_id === row.player_id && item.created_at === row.created_at)
+        ));
+      }
+    } catch (error) {
+      return { ok: false, error, pending: readPendingScoreQueue().length };
+    } finally {
+      pendingScoreSyncBusy = false;
     }
   }
   window.finishAndOfferScore = function (score, elapsedMs, wonRound) {
@@ -166,6 +253,7 @@
     currentElapsedMs = elapsedMs !== null && elapsedMs !== undefined && Number.isFinite(Number(elapsedMs)) ? Number(elapsedMs) : null;
     currentRoundWon = wonRound === true && currentElapsedMs !== null;
     scoreSubmitted = false;
+    currentSubmitRow = null;
     $("submitScoreHint").textContent = currentRoundWon
       ? "本局得分：" + currentScore + "。通关用时：" + formatElapsed(currentElapsedMs) + "。一次提交即可记录分数和最快通关成绩。"
       : "本局得分：" + currentScore + "。点击提交，将成绩加入分数排行榜。合成 Level 9 后才会计入时间排行榜。";
@@ -180,42 +268,33 @@
       $("submitScoreHint").textContent = "请先返回封面设置群昵称，再提交成绩。";
       return;
     }
-    const row = { player_id: profile.playerId || null, name: profile.name, avatar: profile.avatar, score: currentScore, elapsed_ms: currentRoundWon ? currentElapsedMs : null, created_at: new Date().toISOString() };
-    this.disabled = true; this.textContent = "提交中…";
-    storeLocalScore(row);
-    try {
-      if (hasRemote()) {
-        await remoteRequest("game_scores", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(row) });
-        $("submitScoreHint").textContent = "成绩已提交到全球排行榜！";
-      } else {
-        $("submitScoreHint").textContent = "成绩已保存在本机。要让所有人共享，还需完成一次在线数据库配置。";
-      }
-      scoreSubmitted = true; this.textContent = "已提交";
-    } catch (submitError) {
-      // 网络/响应解析可能在数据库已经写入后才失败；先核对云端，避免误报失败。
-      try {
-        if (hasRemote()) {
-          const from = new Date(Date.now() - 120000).toISOString();
-          const verifyPath = "game_scores?select=id,name,score,created_at"
-            + "&name=eq." + encodeURIComponent(profile.name)
-            + "&score=eq." + encodeURIComponent(String(currentScore))
-            + "&created_at=gte." + encodeURIComponent(from)
-            + "&order=created_at.desc&limit=10";
-          const matches = await remoteRequest(verifyPath);
-          const confirmed = Array.isArray(matches) && matches.some(item =>
-            item.name === profile.name && Number(item.score) === Number(currentScore)
-          );
-          if (confirmed) {
-            $("submitScoreHint").textContent = "成绩已成功写入全球排行榜！页面刚才未收到正常确认，现已核实云端记录。";
-            scoreSubmitted = true; this.disabled = true; this.textContent = "已提交";
-            return;
-          }
-        }
-      } catch (_) {}
-      const detail = submitError && submitError.message ? submitError.message : "未知错误";
-      $("submitScoreHint").textContent = "云端上传失败：" + detail.slice(0, 180) + "。成绩已保存在本机，请检查网络后重试。";
-      this.disabled = false; this.textContent = "重新申请上传";
+    if (!currentSubmitRow) {
+      currentSubmitRow = {
+        player_id: profile.playerId || null,
+        name: profile.name,
+        avatar: profile.avatar || "",
+        score: currentScore,
+        elapsed_ms: currentRoundWon ? currentElapsedMs : null,
+        created_at: new Date().toISOString()
+      };
+      storeLocalScore(currentSubmitRow);
+      queueScoreRow(currentSubmitRow);
     }
+    this.disabled = true;
+    this.textContent = "提交中…";
+    $("submitScoreHint").textContent = "正在同步成绩；若网络中断，记录会保存在本机并自动补传。";
+    const result = await syncPendingScoreQueue();
+    if (result.ok) {
+      scoreSubmitted = true;
+      this.disabled = true;
+      this.textContent = "已提交";
+      $("submitScoreHint").textContent = "✓ 成绩已确认写入全球排行榜！";
+      return;
+    }
+    const detail = result.error && result.error.message ? String(result.error.message).slice(0, 160) : "网络连接失败";
+    $("submitScoreHint").textContent = "云端上传失败：" + detail + "。已保留 " + result.pending + " 条待上传成绩，请检查网络后重试。";
+    this.disabled = false;
+    this.textContent = "重新上传待提交成绩";
   });
   avatarInput.addEventListener("change", function () {
     const file = this.files && this.files[0];
@@ -343,6 +422,15 @@
     });
   }
 
+  const queuedScoresAtLoad = readPendingScoreQueue();
+  if (queuedScoresAtLoad.length) {
+    syncPendingScoreQueue().then(result => {
+      const status = $("siteProfileStatus") || $("profileHint");
+      if (!status) return;
+      if (result.ok) status.textContent = "✓ 已自动补传之前未确认的游戏成绩。";
+      else status.textContent = "有 " + result.pending + " 条成绩待补传；云端暂时不可用，重新进入游戏或刷新后会再次尝试。";
+    });
+  }
   const saved = readProfile();
   if (saved.name) nameInput.value = saved.name;
   if (saved.avatar) { avatarData = saved.avatar; avatarPreview.src = avatarData; avatarPreview.hidden = false; avatarFallback.classList.add("hidden"); }
