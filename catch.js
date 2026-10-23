@@ -338,11 +338,11 @@ async function loadRanking() {
   $("rankingStatus").textContent="正在读取全球排行榜…"; const list=$("rankingList");list.replaceChildren();
   let rows=[], cloud=false;
   if(hasCloud()) {
-    try { rows=await api("catch_scores?select=player_id,name,avatar,score,target_level,caught_count,missed_count,max_combo,survival_seconds,finish_reason,created_at&order=score.desc,created_at.asc&limit=50");cloud=true; }
+    try { rows=(await api("catch_scores?select=player_id,name,avatar,score,target_level,caught_count,missed_count,max_combo,survival_seconds,finish_reason,created_at&order=score.desc,created_at.asc&limit=20")).slice(0,20);cloud=true; }
     catch(error){$("rankingStatus").textContent="云端暂时无法连接，下面显示本机最近成绩："+String(error.message||"").slice(0,80)}
   }
-  if(!cloud) rows=localRows().slice().sort((a,b)=>Number(b.score)-Number(a.score)||String(a.created_at).localeCompare(String(b.created_at))).slice(0,50);
-  if(cloud)$("rankingStatus").textContent="全球排行榜 · 显示前 "+rows.length+" 条成绩；时间为本局完成时间。";
+  if(!cloud) rows=localRows().slice().sort((a,b)=>Number(b.score)-Number(a.score)||String(a.created_at).localeCompare(String(b.created_at))).slice(0,20);
+  if(cloud)$("rankingStatus").textContent="全球排行榜 · 最多显示前 20 条成绩；时间为本局完成时间。";
   if(!rows.length){const li=document.createElement("li");li.className="empty-rank";li.textContent="还没有成绩，快来成为第一位登榜的群友！";list.append(li);return}
   rows.forEach((row,index)=>{
     const li=document.createElement("li");li.className="ranking-row";
