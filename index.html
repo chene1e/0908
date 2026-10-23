@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>姐妹兄弟全上岸游戏库</title>
-<link rel="stylesheet" href="style.css?v=20261023-hextech1">
+<link rel="stylesheet" href="style.css?v=20261023-hexboard1">
 <script src="identity.js?v=20261023-v1"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
@@ -137,11 +137,13 @@
         <button id="hextechModeBtn" class="merge-mode-option" type="button" aria-pressed="false"><strong>⚡ 海克斯模式</strong><span>每局随机强化，玩法不断变化</span></button>
       </div>
       <p id="mergeModeHint" class="merge-mode-hint">经典模式：沿用原有规则和全球排行榜。</p>
+      <p class="hextech-cover-teaser">⚡ 当前收录 <strong id="hextechAugmentCount">12</strong> 种海克斯强化，每局随机三选一</p>
     </section>
     <div class="cover-actions">
       <button id="coverStartBtn" class="primary-button">开始游戏</button>
       <button id="coverCollectionBtn" class="outline-button" type="button">📚 群友图鉴</button>
-      <button id="coverLeaderboardBtn" class="outline-button">全球排行榜</button>
+      <button id="coverLeaderboardBtn" class="outline-button">经典全球排行榜</button>
+      <button id="coverHextechLeaderboardBtn" class="outline-button" type="button">⚡ 海克斯全球排行榜</button>
     </div>
     <p class="cover-footnote">每一局成绩都会单独记录，挑战自己，也挑战群友。</p>
   </section>
@@ -164,6 +166,16 @@
     <button id="leaderboardRefreshBtn" class="primary-button">刷新排行榜</button>
   </section>
 
+  <section id="hextechLeaderboardView" class="panel-view hidden">
+    <button id="hextechLeaderboardBackBtn" class="back-button" type="button">← 返回封面</button>
+    <p class="cover-kicker">HEXTECH GLOBAL RANKING</p>
+    <h2>⚡ 海克斯全球排行榜</h2>
+    <p class="hextech-board-intro">仅统计海克斯模式成绩，强化组合和得分各不相同。显示全球前 20 名。</p>
+    <p id="hextechLeaderboardStatus" class="leaderboard-note" role="status" aria-live="polite">正在读取海克斯全球排行榜…</p>
+    <ol id="hextechLeaderboardList" class="hextech-leaderboard-list"></ol>
+    <button id="hextechLeaderboardRefreshBtn" class="primary-button" type="button">刷新海克斯排行榜</button>
+  </section>
+
   <section id="gameView" class="hidden">
     <button id="gameBackBtn" class="back-button">← 返回封面</button>
     <header><h1>合成大群友</h1><p>合成第九级，挑战成功！</p></header>
@@ -179,6 +191,7 @@
       <strong id="hextechProgressTitle">⚡ 海克斯模式</strong>
       <span id="hextechProgressHint"></span>
       <div id="hextechOwnedList" class="hextech-owned-list"></div>
+      <div id="hextechOwnedInfo" class="hextech-owned-info hidden" role="status" aria-live="polite"></div>
     </div>
     <div class="game-wrapper">
       <div id="gameToast" class="game-toast" role="status" aria-live="polite"></div>
@@ -186,6 +199,7 @@
       <div id="message" class="message hidden">
         <h2 id="message-title">游戏结束</h2>
         <p id="message-text"></p>
+        <p id="hextechScoreStatus" class="hextech-score-status hidden" role="status" aria-live="polite"></p>
         <div id="scoreSubmitArea" class="score-submit-area">
           <p id="submitScoreHint">本局成绩将被记录。</p>
           <button id="submitScoreBtn" class="secondary-button">提交本局成绩</button>
@@ -228,8 +242,8 @@
   </section>
 </div>
 <script defer src="config.js?v=20261022-stop2"></script>
-<script defer src="game.js?v=20261023-hextech2"></script>
-<script defer src="lobby.js?v=20261023-hextech1"></script>
+<script defer src="game.js?v=20261023-hexboard1"></script>
+<script defer src="lobby.js?v=20261023-hexboard1"></script>
 <script defer src="feedback.js?v=20261022-feedback1"></script>
 <script defer src="site-profile.js?v=20261023-avatarfix2"></script>
 <link rel="stylesheet" href="feedback.css?v=20261022-feedback1">
