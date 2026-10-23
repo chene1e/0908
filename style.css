@@ -1077,3 +1077,15 @@ button {
   .leaderboard-tabs-three { gap: 4px; }
   .leaderboard-tabs-three .leaderboard-tab { padding: 9px 3px; font-size: 10px; overflow-wrap: anywhere; }
 }
+
+
+/* 海克斯强化表现榜：展示强化名称与四项统计。 */
+.hextech-augment-stat-row { gap: 10px; }
+.hextech-augment-tier-icon { display:flex; flex:0 0 34px; width:34px; height:34px; align-items:center; justify-content:center; border-radius:10px; background:#f3f0e8; color:#85775e; font-size:18px; font-weight:800; }
+.hextech-augment-tier-icon.tier-gold { background:#fff1c9; color:#9a6a00; }
+.hextech-augment-tier-icon.tier-prismatic { background:#eee5ff; color:#7650b5; }
+.hextech-augment-stat-row .hextech-rank-info { min-width:0; flex:1; }
+.hextech-augment-stat-row .hextech-rank-meta { white-space:normal; line-height:1.55; }
+.hextech-augment-stat-row .hextech-average-metric { min-width:86px; }
+.hextech-augment-stat-row .hextech-average-metric strong { font-size:15px; }
+@media(max-width:420px) { .hextech-augment-stat-row { gap:6px; padding:10px 7px; } .hextech-augment-tier-icon { flex-basis:28px; width:28px; height:28px; } .hextech-augment-stat-row .hextech-average-metric { min-width:65px; } .hextech-augment-stat-row .hextech-average-metric strong { font-size:13px; } }
