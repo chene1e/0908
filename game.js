@@ -45,15 +45,22 @@ const RADII = [
 
 // 合成后获得的分数
 const LEVEL_SCORES = [
-    1,
-    2,
-    4,
-    8,
-    16,
-    32,
-    64,
-    128,
-    256
+    1, 2, 4, 8, 16, 32, 64, 128, 256
+];
+const HEXTECH_MILESTONES = [4, 12, 22];
+const HEXTECH_AUGMENTS = [
+ {id:"cashBack",tier:"silver",tierName:"银色强化",name:"合成返现",description:"每次合成额外获得 18 分。",note:"稳定收益"},
+ {id:"luckyFaces",tier:"silver",tierName:"银色强化",name:"欧皇基因",description:"闪光群友出现概率提高 8 个百分点。",note:"更多稀有群友"},
+ {id:"steadyHands",tier:"silver",tierName:"银色强化",name:"连击热手",description:"连击判定时间延长至 7 秒。",note:"更宽松的连击窗口"},
+ {id:"speedyHands",tier:"silver",tierName:"银色强化",name:"极速投放",description:"缩短投放间隔，让操作更流畅。",note:"更快投放"},
+ {id:"bigMerge",tier:"gold",tierName:"金色强化",name:"高能合成",description:"所有合成基础得分提高 50%。",note:"每次合成都受益"},
+ {id:"comboEngine",tier:"gold",tierName:"金色强化",name:"连击引擎",description:"从 2 连击开始获得倍率，倍率提高到 ×2。",note:"奖励连续合成"},
+ {id:"eventMachine",tier:"gold",tierName:"金色强化",name:"事件加速器",description:"随机事件出现得更频繁。",note:"更多惊喜事件"},
+ {id:"safetyNet",tier:"gold",tierName:"金色强化",name:"救场护盾",description:"本局第一次濒临失败时，自动化险为夷。",note:"一次保护机会"},
+ {id:"smallMerge",tier:"prismatic",tierName:"棱彩强化",name:"小球大计",description:"合成等级 1–3 的群友时，获得双倍分数。",note:"低级合成流派"},
+ {id:"prismaticLuck",tier:"prismatic",tierName:"棱彩强化",name:"棱彩欧皇",description:"闪光群友更常出现，稀有合成奖励提高到 ×5。",note:"高风险高收益"},
+ {id:"tripleBurst",tier:"prismatic",tierName:"棱彩强化",name:"三倍爆发",description:"接下来 3 次合成得分变为三倍。",note:"抓住爆发窗口"},
+ {id:"compoundInterest",tier:"prismatic",tierName:"棱彩强化",name:"复利核心",description:"每完成第 5、10、15…次合成，额外获得 120 分。",note:"越合越赚"}
 ];
 
 // 顶部投放区域的高度
@@ -105,6 +112,14 @@ const messageText =
 
 const messageRestart =
     document.getElementById("message-restart");
+const hextechOverlay = document.getElementById("hextechOverlay");
+const hextechChoices = document.getElementById("hextechChoices");
+const hextechOfferHint = document.getElementById("hextechOfferHint");
+const hextechRunStatus = document.getElementById("hextechRunStatus");
+const hextechProgressTitle = document.getElementById("hextechProgressTitle");
+const hextechProgressHint = document.getElementById("hextechProgressHint");
+const hextechOwnedList = document.getElementById("hextechOwnedList");
+const scoreSubmitArea = document.getElementById("scoreSubmitArea");
 
 
 // =============================================
@@ -169,6 +184,11 @@ let nextEventAt = 0;
 let roundDrops = 0;
 let roundMerges = 0;
 let roundRare = 0;
+let hextechModeActive = false, hextechOwned = [], hextechOffersTaken = 0;
+let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus = 0;
+let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
+let hextechDropCooldownMs = 250, hextechDropRecoveryMs = 450, hextechEventFrequencyMultiplier = 1;
+let hextechShieldCharges = 0, hextechSmallMergeMultiplier = 1, hextechTripleMergesRemaining = 0, hextechEveryFiveMergesBonus = 0;
 const PROGRESS_KEY = "bigGroupProgressV1";
 const DAILY_KEY = "bigGroupDailyV1";
 const LEVEL_NAMES = ["初来乍到","活跃群友","气氛担当","梗王候选","群聊明星","资深群友","传奇群友","群聊传说","合成之神"];
@@ -302,6 +322,80 @@ function showToast(text) {
     toast.classList.add("toast-show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove("toast-show"), 2100);
+}
+function renderHextechStatus() {
+    if (!hextechRunStatus) return;
+    hextechRunStatus.classList.toggle("hidden", !hextechModeActive);
+    if (!hextechModeActive) return;
+    if (hextechProgressTitle) hextechProgressTitle.textContent = "⚡ 海克斯模式 · 已选 " + hextechOffersTaken + "/3";
+    if (hextechProgressHint) {
+        if (hextechOffersTaken >= HEXTECH_MILESTONES.length) hextechProgressHint.textContent = "本局强化已集齐，继续合成冲击高分。";
+        else {
+            const left = Math.max(0, HEXTECH_MILESTONES[hextechOffersTaken] - roundMerges);
+            hextechProgressHint.textContent = left === 0 ? "海克斯强化已就绪！" : "再合成 " + left + " 次，即可选择第 " + (hextechOffersTaken + 1) + " 枚强化。";
+        }
+    }
+    if (hextechOwnedList) {
+        hextechOwnedList.replaceChildren();
+        hextechOwned.forEach(a => { const chip = document.createElement("span"); chip.className = "hextech-owned-chip"; chip.textContent = a.name; hextechOwnedList.appendChild(chip); });
+    }
+}
+function applyHextechAugment(a) {
+    switch (a.id) {
+        case "cashBack": hextechBonusPerMerge += 18; break;
+        case "luckyFaces": hextechRareChanceBonus += 0.08; break;
+        case "steadyHands": hextechComboWindowMs = Math.max(hextechComboWindowMs, 7000); break;
+        case "speedyHands": hextechDropCooldownMs = Math.min(hextechDropCooldownMs, 180); hextechDropRecoveryMs = Math.min(hextechDropRecoveryMs, 320); break;
+        case "bigMerge": hextechScoreMultiplier += 0.5; break;
+        case "comboEngine": hextechComboThreshold = 2; hextechComboMultiplier = Math.max(hextechComboMultiplier, 2); break;
+        case "eventMachine": hextechEventFrequencyMultiplier = Math.min(hextechEventFrequencyMultiplier, 0.72); break;
+        case "safetyNet": hextechShieldCharges += 1; break;
+        case "smallMerge": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 2); break;
+        case "prismaticLuck": hextechRareChanceBonus += 0.18; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 5); break;
+        case "tripleBurst": hextechTripleMergesRemaining += 3; break;
+        case "compoundInterest": hextechEveryFiveMergesBonus += 120; break;
+    }
+}
+function chooseHextechAugment(a) {
+    if (!hextechModeActive || !a || hextechOffersTaken >= 3 || hextechOwned.some(item => item.id === a.id)) return;
+    hextechOwned.push(a); applyHextechAugment(a); hextechOffersTaken++;
+    if (hextechOverlay) hextechOverlay.classList.add("hidden");
+    renderHextechStatus(); showToast("⚡ 海克斯生效：" + a.name);
+    if (offerHextechIfDue()) return;
+    paused = false;
+    if (runner && engine && started && !gameOver) Runner.run(runner, engine);
+}
+function offerHextechIfDue() {
+    if (!hextechModeActive || !started || gameOver || hextechOffersTaken >= 3 || roundMerges < HEXTECH_MILESTONES[hextechOffersTaken]) return false;
+    if (!hextechOverlay || !hextechChoices) return false;
+    paused = true; if (runner) Runner.stop(runner);
+    hextechChoices.replaceChildren();
+    if (hextechOfferHint) hextechOfferHint.textContent = "第 " + (hextechOffersTaken + 1) + " 次强化 · 已合成 " + roundMerges + " 次。三选一，效果持续到本局结束。";
+    const pool = HEXTECH_AUGMENTS.filter(a => !hextechOwned.some(item => item.id === a.id));
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    pool.slice(0, 3).forEach(a => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "hextech-card tier-" + a.tier;
+        const tier = document.createElement("span"); tier.className = "hextech-tier"; tier.textContent = a.tierName;
+        const name = document.createElement("strong"); name.textContent = a.name;
+        const description = document.createElement("p"); description.textContent = a.description;
+        const note = document.createElement("small"); note.textContent = a.note;
+        b.append(tier, name, description, note); b.addEventListener("click", () => chooseHextechAugment(a)); hextechChoices.appendChild(b);
+    });
+    hextechOverlay.classList.remove("hidden");
+    const first = hextechChoices.querySelector("button"); if (first) first.focus();
+    return true;
+}
+function resetHextechRun() {
+    hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0;
+    hextechScoreMultiplier = 1; hextechBonusPerMerge = 0; hextechRareChanceBonus = 0; hextechRareScoreMultiplier = 3;
+    hextechComboWindowMs = 4500; hextechComboThreshold = 3; hextechComboMultiplier = 1.5;
+    hextechDropCooldownMs = 250; hextechDropRecoveryMs = 450; hextechEventFrequencyMultiplier = 1;
+    hextechShieldCharges = 0; hextechSmallMergeMultiplier = 1; hextechTripleMergesRemaining = 0; hextechEveryFiveMergesBonus = 0;
+    try { bestScore = Number(localStorage.getItem(hextechModeActive ? "mergeHexBestScore" : "mergeBestScore")) || 0; } catch (_) { bestScore = 0; }
+    bestScoreElement.textContent = bestScore;
+    if (scoreSubmitArea) scoreSubmitArea.classList.toggle("hidden", hextechModeActive);
+    if (hextechOverlay) hextechOverlay.classList.add("hidden");
+    renderHextechStatus();
 }
 function triggerRandomEvent() {
     const event = Math.floor(Math.random() * 3);
@@ -970,7 +1064,7 @@ function updateScore(points) {
         try {
 
             localStorage.setItem(
-                "mergeBestScore",
+                hextechModeActive ? "mergeHexBestScore" : "mergeBestScore",
                 String(bestScore)
             );
 
@@ -1038,7 +1132,7 @@ function dropBall() {
     const now = Date.now();
 
     // 防止连续点击造成异常
-    if (now - lastDropTime < 250) {
+    if (now - lastDropTime < (hextechModeActive ? hextechDropCooldownMs : 250)) {
         return;
     }
 
@@ -1099,7 +1193,7 @@ function dropBall() {
 
         }
 
-    }, 450);
+    }, hextechModeActive ? hextechDropRecoveryMs : 450);
 
 
     // 更新下一张照片
@@ -1288,25 +1382,33 @@ function processMergeQueue() {
         mergingBodies.delete(bodyB.id);
 
 
-        // 连击、活动倍率与稀有群友奖励
+        // 连击、活动倍率、海克斯强化与稀有群友奖励
         const now = Date.now();
-        comboCount = now - lastMergeAt <= 4500 ? comboCount + 1 : 1;
+        const comboThreshold = hextechModeActive ? hextechComboThreshold : 3;
+        const comboMultiplier = hextechModeActive ? hextechComboMultiplier : 1.5;
+        const comboWindow = hextechModeActive ? hextechComboWindowMs : 4500;
+        comboCount = now - lastMergeAt <= comboWindow ? comboCount + 1 : 1;
         lastMergeAt = now;
         roundMerges++;
-        const multiplier = (now < eventMultiplierUntil ? 2 : 1) * (comboCount >= 3 ? 1.5 : 1);
-        const isRare = Math.random() < 0.09;
-        let earned = Math.round(LEVEL_SCORES[newLevel - 1] * multiplier);
+        renderHextechStatus();
+        const multiplier = (now < eventMultiplierUntil ? 2 : 1) * (comboCount >= comboThreshold ? comboMultiplier : 1);
+        const rareChance = hextechModeActive ? Math.min(0.5, 0.09 + hextechRareChanceBonus) : 0.09;
+        const isRare = Math.random() < rareChance;
+        let earned = Math.round(LEVEL_SCORES[newLevel - 1] * multiplier * (hextechModeActive ? hextechScoreMultiplier : 1));
+        if (hextechModeActive && item.level <= 3) earned = Math.round(earned * hextechSmallMergeMultiplier);
+        if (hextechModeActive && hextechTripleMergesRemaining > 0) { earned *= 3; hextechTripleMergesRemaining--; }
+        if (hextechModeActive) { earned += hextechBonusPerMerge; if (roundMerges % 5 === 0) earned += hextechEveryFiveMergesBonus; }
         if (nextMergeBonus) {
             earned += LEVEL_SCORES[newLevel - 1] * 2;
             nextMergeBonus = false;
             showToast("🎁 群友应援！本次合成额外加分");
         }
         if (isRare) {
-            earned *= 3;
+            earned *= hextechModeActive ? hextechRareScoreMultiplier : 3;
             roundRare++;
-            showToast("✨ 欧皇！发现闪光群友，三倍合成分！");
-        } else if (comboCount >= 3) {
-            showToast("🔥 " + comboCount + " 连击！得分 x1.5");
+            showToast("✨ 欧皇！发现闪光群友，" + (hextechModeActive ? hextechRareScoreMultiplier : 3) + " 倍合成分！");
+        } else if (comboCount >= comboThreshold) {
+            showToast("🔥 " + comboCount + " 连击！得分 x" + comboMultiplier);
         } else if (now < eventMultiplierUntil) {
             showToast("⚡ 双倍时间！得分翻倍");
         }
@@ -1381,6 +1483,7 @@ function processMergeQueue() {
 
     // 清理合成锁
     mergingBodies.clear();
+    offerHextechIfDue();
 
 }
 
@@ -1406,7 +1509,7 @@ function checkGameState() {
     const now = Date.now();
     if (now >= nextEventAt) {
         triggerRandomEvent();
-        nextEventAt = now + 18000 + Math.random() * 16000;
+        nextEventAt = now + (18000 + Math.random() * 16000) * (hextechModeActive ? hextechEventFrequencyMultiplier : 1);
     }
 
     let dangerous = false;
@@ -1461,13 +1564,15 @@ function checkGameState() {
         }
 
 
-        if (
-            now - gameOverTimer >
-            GAME_OVER_DELAY
-        ) {
-
-            endGame();
-
+        if (now - gameOverTimer > GAME_OVER_DELAY) {
+            if (hextechModeActive && hextechShieldCharges > 0) {
+                hextechShieldCharges -= 1;
+                gameOverTimer = 0;
+                showToast("🛡️ 救场护盾触发！这次险情被化解了。");
+                renderHextechStatus();
+            } else {
+                endGame();
+            }
         }
 
     } else {
@@ -1534,14 +1639,14 @@ function endGame() {
 
     pauseBtn.disabled = true;
 
-    if (window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
-
+    if (!hextechModeActive && window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
+    if (hextechModeActive && scoreSubmitArea) scoreSubmitArea.classList.add("hidden");
+    messageRestart.textContent = "再玩一次";
     showMessage(
-
-        "游戏结束",
-
-        `照片堆得太高了！你的最终得分：${score}`
-
+        hextechModeActive ? "⚡ 海克斯挑战结束" : "游戏结束",
+        hextechModeActive
+            ? "照片堆得太高了！本局得分：" + score + "。海克斯模式本机最高分：" + bestScore + "。成绩单独保存，不计入经典全球排行榜。"
+            : `照片堆得太高了！你的最终得分：${score}`
     );
 
 }
@@ -1561,13 +1666,14 @@ function stopGameManually() {
     pauseBtn.textContent = "暂停游戏";
     Runner.stop(runner);
 
-    if (window.finishAndOfferScore) {
-        window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
-    }
-
+    if (!hextechModeActive && window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
+    if (hextechModeActive && scoreSubmitArea) scoreSubmitArea.classList.add("hidden");
+    messageRestart.textContent = "再玩一次";
     showMessage(
-        "本局已结束",
-        `你主动结束了本局，当前得分：${score}。可以提交成绩到排行榜，也可以再玩一次。`
+        hextechModeActive ? "⚡ 海克斯挑战结束" : "本局已结束",
+        hextechModeActive
+            ? "你主动结束了海克斯挑战，本局得分：" + score + "。海克斯模式本机最高分：" + bestScore + "。成绩单独保存，不计入经典全球排行榜。"
+            : `你主动结束了本局，当前得分：${score}。可以提交成绩到排行榜，也可以再玩一次。`
     );
 }
 
@@ -1578,7 +1684,8 @@ function stopGameManually() {
 
 function startGame() {
 
-    // 重置游戏物理世界
+    // 选择模式并重置本局强化，然后重建物理世界
+    resetHextechRun();
     createGame();
 
 
@@ -1614,6 +1721,7 @@ function startGame() {
     roundDrops = 0;
     roundMerges = 0;
     roundRare = 0;
+    renderHextechStatus();
     dailyData.games = (dailyData.games || 0) + 1;
     saveDaily();
     updateProgressUI();
@@ -1846,6 +1954,7 @@ messageRestart.addEventListener(
     function () {
         if (level9Celebrated && !gameOver) {
             message.classList.add("hidden");
+            if (offerHextechIfDue()) return;
             paused = false;
             pauseBtn.disabled = false;
             pauseBtn.textContent = "暂停游戏";
