@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>姐妹兄弟全上岸游戏库</title>
-<link rel="stylesheet" href="style.css?v=20261023-avatarfix3">
+<link rel="stylesheet" href="style.css?v=20261023-hextech1">
 <script src="identity.js?v=20261023-v1"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
@@ -130,6 +130,14 @@
       <button id="saveProfileBtn" class="secondary-button hidden" type="button">保存玩家资料</button>
       <p id="profileHint" class="profile-hint">昵称、头像和游客 ID 在游戏库首页统一设置。</p>
     </div>
+    <section class="merge-mode-picker" aria-label="选择合成大群友模式">
+      <p class="merge-mode-label">选择玩法</p>
+      <div class="merge-mode-options">
+        <button id="classicModeBtn" class="merge-mode-option active" type="button" aria-pressed="true"><strong>经典模式</strong><span>原版合成规则</span></button>
+        <button id="hextechModeBtn" class="merge-mode-option" type="button" aria-pressed="false"><strong>⚡ 海克斯模式</strong><span>每局随机强化，玩法不断变化</span></button>
+      </div>
+      <p id="mergeModeHint" class="merge-mode-hint">经典模式：沿用原有规则和全球排行榜。</p>
+    </section>
     <div class="cover-actions">
       <button id="coverStartBtn" class="primary-button">开始游戏</button>
       <button id="coverCollectionBtn" class="outline-button" type="button">📚 群友图鉴</button>
@@ -167,6 +175,11 @@
     <div class="game-shortcuts hidden">
       <button id="collectionOpenBtn" class="outline-button" type="button">📚 群友图鉴 <span id="collectionCount">0/9</span></button>
     </div>
+    <div id="hextechRunStatus" class="hextech-run-status hidden" aria-live="polite">
+      <strong id="hextechProgressTitle">⚡ 海克斯模式</strong>
+      <span id="hextechProgressHint"></span>
+      <div id="hextechOwnedList" class="hextech-owned-list"></div>
+    </div>
     <div class="game-wrapper">
       <div id="gameToast" class="game-toast" role="status" aria-live="polite"></div>
       <div id="game-container"></div>
@@ -178,6 +191,15 @@
           <button id="submitScoreBtn" class="secondary-button">提交本局成绩</button>
         </div>
         <button id="message-restart">再玩一次</button>
+      </div>
+      <div id="hextechOverlay" class="hextech-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="hextechTitle">
+        <div class="hextech-panel">
+          <p class="hextech-eyebrow">HEXTECH AUGMENTS</p>
+          <h2 id="hextechTitle">选择一枚海克斯强化</h2>
+          <p id="hextechOfferHint" class="hextech-offer-hint">三选一，强化效果持续到本局结束。</p>
+          <div id="hextechChoices" class="hextech-choices"></div>
+          <p class="hextech-footnote">选择后无法更换。海克斯模式成绩单独保存在本机，不计入经典全球排行榜。</p>
+        </div>
       </div>
     </div>
     <div class="buttons">
@@ -206,8 +228,8 @@
   </section>
 </div>
 <script defer src="config.js?v=20261022-stop2"></script>
-<script defer src="game.js?v=20261022-level9continue1"></script>
-<script defer src="lobby.js?v=20261023-cloudfix1"></script>
+<script defer src="game.js?v=20261023-hextech1"></script>
+<script defer src="lobby.js?v=20261023-hextech1"></script>
 <script defer src="feedback.js?v=20261022-feedback1"></script>
 <script defer src="site-profile.js?v=20261023-avatarfix2"></script>
 <link rel="stylesheet" href="feedback.css?v=20261022-feedback1">
