@@ -8,7 +8,7 @@ const images = AVATARS.map(item => { const img = new Image(); img.src = item.src
 const canvas = $("playfield"), ctx = canvas.getContext("2d");
 let selected = 1, screen = "cover", running = false, raf = 0, lastFrame = 0, startAt = 0, elapsed = 0, spawnClock = 0;
 let basketX = W / 2, objects = [], floaters = [], score = 0, lives = 3, caught = 0, missed = 0, combo = 0, maxCombo = 0;
-let roundId = "", finishReason = "lives", finalRow = null, uploadInProgress = false;
+let roundId = "", finishReason = "lives", finalRow = null, uploadInProgress = false, pendingUploads = [];
 function uid() { return window.GameIdentity ? window.GameIdentity.newId() : (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)); }
 function getProfile() {
   if (window.GameIdentity) return window.GameIdentity.getProfile();
@@ -161,35 +161,55 @@ function finish(reason) {
     target_level: selected, score, caught_count: caught, missed_count: missed, max_combo: maxCombo,
     survival_seconds: Number(duration.toFixed(2)), finish_reason: reason, created_at: new Date().toISOString()
   };
-  storeLocal(finalRow);
+  storeLocal(finalRow); pendingUploads.push(finalRow);
   $("resultTitle").textContent = isRecord ? "🏆 刷新个人纪录！" : reason === "lives" ? "❤️ 生命耗尽" : reason === "manual" ? "本局提前结束" : "⏱️ 时间到！";
   $("finalScore").textContent = score.toLocaleString(); $("finalCaught").textContent = String(caught);
   $("finalMissed").textContent = String(missed); $("finalCombo").textContent = String(maxCombo); $("finalDuration").textContent = roundTime(duration * 1000);
   $("finishTimestamp").textContent = "完成时间：" + formatDate(finalRow.created_at) + " · 心仪群友：" + AVATARS[selected - 1].name;
   $("uploadStatus").textContent = "正在上传本局成绩…"; $("resultOverlay").classList.remove("hidden");
-  saveRun();
+  saveRun(finalRow);
 }
-async function saveRun() {
-  if (!finalRow || uploadInProgress) return;
-  uploadInProgress = true; $("retryUploadButton").classList.add("hidden");
-  if (!hasCloud()) { $("uploadStatus").textContent = "云端排行榜配置不可用，成绩已保存在本机。"; $("retryUploadButton").classList.remove("hidden"); uploadInProgress = false; return; }
-  const row = finalRow;
+async function saveRun(requestedRow) {
+  if (uploadInProgress) return;
+  const row = requestedRow || pendingUploads[0] || finalRow;
+  if (!row) return;
+  uploadInProgress = true;
+  $("retryUploadButton").classList.add("hidden");
+  if (!hasCloud()) {
+    if (finalRow) {
+      $("uploadStatus").textContent = "云端排行榜配置不可用；已保留本机记录。";
+      $("retryUploadButton").classList.remove("hidden");
+    }
+    uploadInProgress = false;
+    return;
+  }
+  let uploaded = false;
   try {
     await api("catch_scores", { method:"POST", headers:{ Prefer:"return=minimal" }, body:JSON.stringify({
       round_id:row.round_id, player_id:row.player_id, name:row.name, avatar:row.avatar, target_level:row.target_level,
       score:row.score, caught_count:row.caught_count, missed_count:row.missed_count, max_combo:row.max_combo,
       survival_seconds:row.survival_seconds, finish_reason:row.finish_reason
     }) });
-    if (finalRow === row) $("uploadStatus").textContent = "✓ 已上传全球排行榜 · 本局成绩已记录";
+    uploaded = true;
   } catch (error) {
-    let confirmed = false;
     try {
       const rows = await api("catch_scores?select=round_id&round_id=eq." + encodeURIComponent(row.round_id) + "&limit=1");
-      confirmed = Array.isArray(rows) && rows.some(item => item.round_id === row.round_id);
+      uploaded = Array.isArray(rows) && rows.some(item => item.round_id === row.round_id);
     } catch (_) {}
-    if (confirmed) { if (finalRow === row) $("uploadStatus").textContent = "✓ 云端已确认本局成绩"; }
-    else { if (finalRow === row) { $("uploadStatus").textContent = "上传未成功：" + String(error.message || "网络错误").slice(0, 100) + "。本机记录已保存，可重试。"; $("retryUploadButton").classList.remove("hidden"); } }
-  } finally { uploadInProgress = false; if (finalRow && finalRow !== row && !running) saveRun(); }
+    if (!uploaded && finalRow) {
+      $("uploadStatus").textContent = "云端暂时无法确认成绩；本机已保留 " + pendingUploads.length + " 局待上传记录。请重试。";
+      $("retryUploadButton").classList.remove("hidden");
+    }
+  }
+  if (uploaded) {
+    pendingUploads = pendingUploads.filter(item => item.round_id !== row.round_id);
+    if (finalRow && finalRow.round_id === row.round_id) {
+      $("uploadStatus").textContent = "✓ 已上传全球排行榜 · 本局成绩已记录";
+      $("retryUploadButton").classList.add("hidden");
+    }
+  }
+  uploadInProgress = false;
+  if (uploaded && pendingUploads.length && !running) saveRun(pendingUploads[0]);
 }
 function drawBackground() {
   const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#bdeaff"); g.addColorStop(.68,"#effaff"); g.addColorStop(1,"#d7f0d6");
