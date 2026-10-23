@@ -189,7 +189,7 @@ async function saveRun() {
     } catch (_) {}
     if (confirmed) { if (finalRow === row) $("uploadStatus").textContent = "✓ 云端已确认本局成绩"; }
     else { if (finalRow === row) { $("uploadStatus").textContent = "上传未成功：" + String(error.message || "网络错误").slice(0, 100) + "。本机记录已保存，可重试。"; $("retryUploadButton").classList.remove("hidden"); } }
-  } finally { uploadInProgress = false; }
+  } finally { uploadInProgress = false; if (finalRow && finalRow !== row && !running) saveRun(); }
 }
 function drawBackground() {
   const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#bdeaff"); g.addColorStop(.68,"#effaff"); g.addColorStop(1,"#d7f0d6");
