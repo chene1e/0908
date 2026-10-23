@@ -43,7 +43,7 @@
         </span>
         <span class="library-game-arrow">›</span>
       </button>
-      <a class="library-game-card" data-category="playable" href="whack.html?v=20261023-identity1" style="text-decoration:none;color:inherit">
+      <a class="library-game-card" data-category="playable" href="whack.html?v=20261023-identity2" style="text-decoration:none;color:inherit">
         <span class="library-game-icon">🎯</span>
         <span class="library-game-copy">
           <strong>群友打地鼠</strong>
@@ -52,7 +52,7 @@
         </span>
         <span class="library-game-arrow">›</span>
       </a>
-      <a class="library-game-card" data-category="playable" href="match.html?v=20261023-identity1" style="text-decoration:none;color:inherit">
+      <a class="library-game-card" data-category="playable" href="match.html?v=20261023-identity2" style="text-decoration:none;color:inherit">
         <span class="library-game-icon">🧩</span>
         <span class="library-game-copy">
           <strong>群友消消乐</strong>
@@ -124,12 +124,12 @@
         <img id="avatarPreview" alt="玩家头像" class="avatar-preview" hidden>
         <div id="avatarFallback" class="avatar-fallback">👤</div>
       </div>
-      <label class="upload-avatar" for="avatarInput">上传头像</label>
+      <label class="upload-avatar hidden" for="avatarInput">上传头像</label>
       <input id="avatarInput" type="file" accept="image/*" hidden>
-      <label class="profile-label" for="playerName">你的群昵称</label>
-      <input id="playerName" class="name-input" maxlength="20" placeholder="输入名字再来挑战" autocomplete="nickname">
-      <button id="saveProfileBtn" class="secondary-button">保存玩家资料</button>
-      <p id="profileHint" class="profile-hint">设置头像和名字，让大家认出你。</p>
+      <label class="profile-label" for="playerName">当前全站昵称</label>
+      <input id="playerName" class="name-input" maxlength="40" placeholder="请在游戏库首页设置昵称" autocomplete="nickname" readonly>
+      <button id="saveProfileBtn" class="secondary-button hidden" type="button">保存玩家资料</button>
+      <p id="profileHint" class="profile-hint">昵称、头像和游客 ID 在游戏库首页统一设置。</p>
     </div>
     <div class="cover-actions">
       <button id="coverStartBtn" class="primary-button">开始游戏</button>
@@ -208,7 +208,7 @@
 </div>
 <script defer src="config.js?v=20261022-stop2"></script>
 <script defer src="game.js?v=20261022-level9continue1"></script>
-<script defer src="lobby.js?v=20261023-identity1"></script>
+<script defer src="lobby.js?v=20261023-identity2"></script>
 <script defer src="feedback.js?v=20261022-feedback1"></script>
 <script defer src="site-profile.js?v=20261023-v1"></script>
 <link rel="stylesheet" href="feedback.css?v=20261022-feedback1">
