@@ -209,7 +209,7 @@ let nextEventAt = 0;
 let roundDrops = 0;
 let roundMerges = 0;
 let roundRare = 0;
-let hextechModeActive = false, hextechOwned = [], hextechOffersTaken = 0;
+let hextechModeActive = false, hextechOwned = [], hextechOffersTaken = 0, hextechOfferedAugments = [];
 let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus = 0;
 let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
 let hextechDropCooldownMs = 250, hextechDropRecoveryMs = 450, hextechEventFrequencyMultiplier = 1;
@@ -445,6 +445,10 @@ function offerHextechIfDue() {
     const pool = HEXTECH_AUGMENTS.filter(a => a.tier === tierForOffer && !hextechOwned.some(item => item.id === a.id));
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const offered = pool.slice(0, 3);
+    const recordOfferedAugment = augment => {
+        if (!augment) return;
+        hextechOfferedAugments.push({id:augment.id, tier:augment.tier, tierName:augment.tierName, name:augment.name});
+    };
     const renderChoice = (card, augment) => {
         card.replaceChildren();
         const tier = document.createElement("span"); tier.className = "hextech-tier"; tier.textContent = augment.tierName;
@@ -456,6 +460,7 @@ function offerHextechIfDue() {
     };
     offered.forEach((initialAugment, index) => {
         let currentAugment = initialAugment;
+        recordOfferedAugment(currentAugment);
         let refreshed = false;
         const wrap = document.createElement("div"); wrap.className = "hextech-choice-wrap";
         const card = document.createElement("button"); card.type = "button"; card.className = "hextech-card tier-" + initialAugment.tier;
@@ -479,6 +484,7 @@ function offerHextechIfDue() {
             }
             currentAugment = candidates[Math.floor(Math.random() * candidates.length)];
             offered[index] = currentAugment;
+            recordOfferedAugment(currentAugment);
             refreshed = true;
             renderChoice(card, currentAugment);
             refresh.disabled = true;
@@ -513,7 +519,8 @@ function submitHextechRunScore() {
         augments: hextechOwned.map(a => ({
             id:a.id, tier:a.tier, tierName:a.tierName,
             name:a.name, description:a.description
-        }))
+        })),
+        offered_augments: hextechOfferedAugments.slice(0,60)
     };
     if (typeof window.submitHextechScore !== "function") {
         if (hextechScoreStatus) hextechScoreStatus.textContent = "本局已结束，但成绩上传模块暂不可用；请刷新后再试。";
@@ -533,7 +540,7 @@ function submitHextechRunScore() {
     });
 }
 function resetHextechRun() {
-    hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0;
+    hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0; hextechOfferedAugments = [];
     hextechScoreMultiplier = 1; hextechBonusPerMerge = 0; hextechRareChanceBonus = 0; hextechRareScoreMultiplier = 3;
     hextechComboWindowMs = 4500; hextechComboThreshold = 3; hextechComboMultiplier = 1.5;
     hextechDropCooldownMs = 250; hextechDropRecoveryMs = 450; hextechEventFrequencyMultiplier = 1;
