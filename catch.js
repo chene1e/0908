@@ -263,7 +263,7 @@ $("gameBackButton").addEventListener("click",()=>{if(running){if(window.confirm(
 $("endEarlyButton").addEventListener("click",()=>{if(running&&window.confirm("确定提前结束本局并上传当前成绩吗？"))finish("manual")});
 $("againButton").addEventListener("click",startRound);
 $("resultCoverButton").addEventListener("click",()=>showOnly("cover"));
-$("retryUploadButton").addEventListener("click",saveRun);
+$("retryUploadButton").addEventListener("click",()=>saveRun());
 $("refreshRankingButton").addEventListener("click",loadRanking);
 async function loadRanking() {
   $("rankingStatus").textContent="正在读取全球排行榜…"; const list=$("rankingList");list.replaceChildren();
