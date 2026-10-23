@@ -3,6 +3,7 @@
   const $ = (id) => document.getElementById(id);
   const cover = $("cover"), gameView = $("gameView"), leaderboardView = $("leaderboardView");
   const hextechLeaderboardView = $("hextechLeaderboardView");
+  const hextechAverageLeaderboardView = $("hextechAverageLeaderboardView");
   const hextechLeaderboardList = $("hextechLeaderboardList");
   const hextechLeaderboardStatus = $("hextechLeaderboardStatus");
   let hextechLeaderboardRequest = 0;
@@ -229,6 +230,84 @@
       hextechLeaderboardStatus.textContent = "⚠ 云端排行榜暂不可用（" + detail + "）。当前显示的是本机记录，不代表全球排名。";
     }
   }
+  function renderHextechAverageLeaderboard(rows) {
+    const list = $("hextechAverageLeaderboardList");
+    if (!list) return;
+    list.replaceChildren();
+    const groups = new Map();
+    (Array.isArray(rows) ? rows : []).forEach(row => {
+      const name = String(row.name || "神秘群友").trim() || "神秘群友";
+      const key = row.player_id ? "id:" + row.player_id : "name:" + name.toLocaleLowerCase();
+      if (!groups.has(key)) groups.set(key, { name, avatar:row.avatar || "", runs:0, total:0, best:0, latest:row.created_at || "" });
+      const group = groups.get(key);
+      group.runs++;
+      group.total += Math.max(0, Number(row.score) || 0);
+      group.best = Math.max(group.best, Math.max(0, Number(row.score) || 0));
+      if (row.created_at && row.created_at > group.latest) group.latest = row.created_at;
+      if (!group.avatar && row.avatar) group.avatar = row.avatar;
+      if (row.created_at && (!group.name || group.name === "神秘群友")) group.name = name;
+    });
+    const ranked = Array.from(groups.values()).filter(player => player.runs >= 3)
+      .map(player => Object.assign(player, { average:player.total / player.runs }))
+      .sort((a,b) => b.average - a.average || b.runs - a.runs || b.best - a.best)
+      .slice(0,20);
+    if (!ranked.length) {
+      const li = document.createElement("li"); li.className = "hextech-ranking-empty";
+      li.textContent = "暂时还没有满足上榜条件的玩家。完成 3 局海克斯模式后，就能参与平均分排名！";
+      list.appendChild(li); return;
+    }
+    ranked.forEach((player,index) => {
+      const li = document.createElement("li"); li.className = "hextech-rank-row";
+      const rank = document.createElement("span"); rank.className = "hextech-rank-number";
+      rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index+1);
+      const img = document.createElement("img"); img.className = "hextech-rank-avatar"; img.alt = ""; img.loading = "lazy";
+      const fallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23f4ead8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
+      img.src = player.avatar || fallback;
+      img.addEventListener("error", function(){this.onerror=null;this.src=fallback;});
+      const info = document.createElement("div"); info.className = "hextech-rank-info";
+      const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = player.name;
+      const meta = document.createElement("small"); meta.className = "hextech-rank-meta";
+      meta.textContent = "有效局数 " + player.runs + " · 个人最高 " + player.best.toLocaleString() + " 分";
+      info.append(name,meta);
+      const metric = document.createElement("div"); metric.className = "hextech-average-metric";
+      const average = document.createElement("strong"); average.textContent = Math.round(player.average).toLocaleString() + " 分/局";
+      const runs = document.createElement("small"); runs.textContent = "平均分";
+      metric.append(average,runs);
+      li.append(rank,img,info,metric); list.appendChild(li);
+    });
+  }
+  async function loadHextechAverageLeaderboard() {
+    const status = $("hextechAverageLeaderboardStatus");
+    if (!status) return;
+    status.textContent = "正在统计全球平均分…";
+    const cached = (() => { try { return JSON.parse(sessionStorage.getItem("mergeHextechAverageLeaderboardCacheV1") || "null"); } catch (_) { return null; } })();
+    if (Array.isArray(cached)) renderHextechAverageLeaderboard(cached);
+    try {
+      if (!hasRemote()) throw new Error("云端数据库配置不可用。");
+      await syncPendingHextechScores();
+      const allRows = [];
+      const pageSize = 1000;
+      const maxRows = 20000;
+      for (let offset = 0; offset < maxRows; offset += pageSize) {
+        const batch = await remoteRequest(
+          "merge_hextech_scores?select=player_id,name,avatar,score,created_at&order=created_at.asc&limit=" + pageSize + "&offset=" + offset
+        );
+        if (!Array.isArray(batch)) throw new Error("云端返回的数据格式不正确。");
+        allRows.push(...batch);
+        if (batch.length < pageSize) break;
+      }
+      renderHextechAverageLeaderboard(allRows);
+      try { sessionStorage.setItem("mergeHextechAverageLeaderboardCacheV1", JSON.stringify(allRows)); } catch (_) {}
+      status.textContent = "已统计 " + allRows.length.toLocaleString() + " 局海克斯成绩；每位玩家至少 3 局，按平均分排序。";
+      if (allRows.length >= maxRows) status.textContent += " 当前最多读取最近/最早排序中的 20,000 条记录。";
+    } catch (error) {
+      const localRows = readHextechLocalScores();
+      renderHextechAverageLeaderboard(localRows);
+      const detail = error && error.message ? String(error.message).slice(0,100) : "网络连接失败";
+      status.textContent = "⚠ 云端统计暂不可用（" + detail + "）。当前仅按本机历史记录统计，不代表全球排名。";
+    }
+  }
+
   function formatElapsed(ms) {
     const seconds = Number(ms) / 1000;
     return Number.isFinite(seconds) && seconds >= 0 ? seconds.toFixed(2) + " 秒" : "—";
@@ -519,6 +598,7 @@
     if (!saveProfile()) return;
     cover.classList.add("hidden"); leaderboardView.classList.add("hidden");
     if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
     gameView.classList.remove("hidden");
     $("startBtn").click();
   });
@@ -527,6 +607,7 @@
     gameView.classList.add("hidden");
     leaderboardView.classList.add("hidden");
     if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
     const collectionView = $("collectionView");
     if (collectionView) {
       collectionView.classList.remove("hidden");
@@ -537,6 +618,7 @@
   $("coverLeaderboardBtn").addEventListener("click", function () {
     cover.classList.add("hidden"); gameView.classList.add("hidden");
     if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
     leaderboardView.classList.remove("hidden"); loadLeaderboard();
   });
   $("coverHextechLeaderboardBtn").addEventListener("click", function () {
@@ -545,9 +627,20 @@
   });
   $("hextechLeaderboardBackBtn").addEventListener("click", backToCover);
   $("hextechLeaderboardRefreshBtn").addEventListener("click", loadHextechLeaderboard);
+  const averageBoardButton = $("coverHextechAverageLeaderboardBtn");
+  if (averageBoardButton) averageBoardButton.addEventListener("click", function () {
+    cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) { hextechAverageLeaderboardView.classList.remove("hidden"); loadHextechAverageLeaderboard(); }
+  });
+  const averageBoardBackButton = $("hextechAverageLeaderboardBackBtn");
+  if (averageBoardBackButton) averageBoardBackButton.addEventListener("click", backToCover);
+  const averageBoardRefreshButton = $("hextechAverageLeaderboardRefreshBtn");
+  if (averageBoardRefreshButton) averageBoardRefreshButton.addEventListener("click", loadHextechAverageLeaderboard);
   function backToCover() {
     cover.classList.remove("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
     if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
   }
   $("leaderboardBackBtn").addEventListener("click", backToCover);
   const collectionBackBtn = $("collectionBackBtn");
