@@ -444,13 +444,49 @@ function offerHextechIfDue() {
     const tierForOffer = ["silver", "gold", "prismatic"][hextechOffersTaken];
     const pool = HEXTECH_AUGMENTS.filter(a => a.tier === tierForOffer && !hextechOwned.some(item => item.id === a.id));
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-    pool.slice(0, 3).forEach(a => {
-        const b = document.createElement("button"); b.type = "button"; b.className = "hextech-card tier-" + a.tier;
-        const tier = document.createElement("span"); tier.className = "hextech-tier"; tier.textContent = a.tierName;
-        const name = document.createElement("strong"); name.textContent = a.name;
-        const description = document.createElement("p"); description.textContent = a.description;
-        const note = document.createElement("small"); note.textContent = a.note;
-        b.append(tier, name, description, note); b.addEventListener("click", () => chooseHextechAugment(a)); hextechChoices.appendChild(b);
+    const offered = pool.slice(0, 3);
+    const renderChoice = (card, augment) => {
+        card.replaceChildren();
+        const tier = document.createElement("span"); tier.className = "hextech-tier"; tier.textContent = augment.tierName;
+        const name = document.createElement("strong"); name.textContent = augment.name;
+        const description = document.createElement("p"); description.textContent = augment.description;
+        const note = document.createElement("small"); note.textContent = augment.note;
+        card.append(tier, name, description, note);
+        card.setAttribute("aria-label", augment.name + "：" + augment.description + "，点击选择");
+    };
+    offered.forEach((initialAugment, index) => {
+        let currentAugment = initialAugment;
+        let refreshed = false;
+        const wrap = document.createElement("div"); wrap.className = "hextech-choice-wrap";
+        const card = document.createElement("button"); card.type = "button"; card.className = "hextech-card tier-" + initialAugment.tier;
+        renderChoice(card, currentAugment);
+        card.addEventListener("click", () => chooseHextechAugment(currentAugment));
+        const refresh = document.createElement("button"); refresh.type = "button"; refresh.className = "hextech-refresh-btn";
+        refresh.textContent = "↻ 刷新（剩余 1 次）";
+        refresh.setAttribute("aria-label", "刷新第 " + (index + 1) + " 个海克斯选项");
+        refresh.addEventListener("click", () => {
+            if (refreshed) return;
+            const candidates = HEXTECH_AUGMENTS.filter(a =>
+                a.tier === tierForOffer &&
+                !hextechOwned.some(item => item.id === a.id) &&
+                !offered.some((item, offeredIndex) => offeredIndex !== index && item.id === a.id) &&
+                a.id !== currentAugment.id
+            );
+            if (!candidates.length) {
+                refresh.disabled = true;
+                refresh.textContent = "暂无可刷新选项";
+                return;
+            }
+            currentAugment = candidates[Math.floor(Math.random() * candidates.length)];
+            offered[index] = currentAugment;
+            refreshed = true;
+            renderChoice(card, currentAugment);
+            refresh.disabled = true;
+            refresh.textContent = "✓ 已刷新";
+            refresh.setAttribute("aria-label", "此海克斯选项已使用刷新机会");
+        });
+        wrap.append(card, refresh);
+        hextechChoices.appendChild(wrap);
     });
     hextechOverlay.classList.remove("hidden");
     const first = hextechChoices.querySelector("button"); if (first) first.focus();
