@@ -327,6 +327,29 @@
     reader.readAsDataURL(file);
   });
   $("saveProfileBtn").addEventListener("click", saveProfile);
+  const classicModeBtn = $("classicModeBtn");
+  const hextechModeBtn = $("hextechModeBtn");
+  const mergeModeHint = $("mergeModeHint");
+  window.mergeGameMode = "classic";
+  function selectMergeMode(mode) {
+    window.mergeGameMode = mode === "hextech" ? "hextech" : "classic";
+    const isHextech = window.mergeGameMode === "hextech";
+    if (classicModeBtn) {
+      classicModeBtn.classList.toggle("active", !isHextech);
+      classicModeBtn.setAttribute("aria-pressed", String(!isHextech));
+    }
+    if (hextechModeBtn) {
+      hextechModeBtn.classList.toggle("active", isHextech);
+      hextechModeBtn.setAttribute("aria-pressed", String(isHextech));
+    }
+    if (mergeModeHint) mergeModeHint.textContent = isHextech
+      ? "海克斯模式：合成达到里程碑时，暂停游戏并从 3 个强化中选 1 个；成绩与经典榜分开。"
+      : "经典模式：沿用原有规则和全球排行榜。";
+  }
+  if (classicModeBtn) classicModeBtn.addEventListener("click", () => selectMergeMode("classic"));
+  if (hextechModeBtn) hextechModeBtn.addEventListener("click", () => selectMergeMode("hextech"));
+  selectMergeMode("classic");
+
   $("openMergeGameBtn").addEventListener("click", function () {
     if (libraryCover) libraryCover.classList.add("hidden");
     if (developmentView) developmentView.classList.add("hidden");
