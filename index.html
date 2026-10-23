@@ -137,7 +137,7 @@
         <button id="hextechModeBtn" class="merge-mode-option" type="button" aria-pressed="false"><strong>⚡ 海克斯模式</strong><span>每局随机强化，玩法不断变化</span></button>
       </div>
       <p id="mergeModeHint" class="merge-mode-hint">经典模式：沿用原有规则和全球排行榜。</p>
-      <p class="hextech-cover-teaser">⚡ 当前收录 <strong id="hextechAugmentCount">12</strong> 种海克斯强化，每局随机三选一</p>
+      <div class="hextech-cover-teaser"><span>⚡ 当前收录 <strong id="hextechAugmentCount">30</strong> 种海克斯强化，每局随机三选一</span><button id="coverHextechAverageLeaderboardBtn" class="hextech-average-link" type="button">平均分榜 ↗</button></div>
     </section>
     <div class="cover-actions">
       <button id="coverStartBtn" class="primary-button">开始游戏</button>
@@ -174,6 +174,16 @@
     <p id="hextechLeaderboardStatus" class="leaderboard-note" role="status" aria-live="polite">正在读取海克斯全球排行榜…</p>
     <ol id="hextechLeaderboardList" class="hextech-leaderboard-list"></ol>
     <button id="hextechLeaderboardRefreshBtn" class="primary-button" type="button">刷新海克斯排行榜</button>
+  </section>
+
+  <section id="hextechAverageLeaderboardView" class="panel-view hidden">
+    <button id="hextechAverageLeaderboardBackBtn" class="back-button" type="button">← 返回封面</button>
+    <p class="cover-kicker">HEXTECH AVERAGE SCORE</p>
+    <h2>📊 海克斯平均分排行榜</h2>
+    <p class="hextech-board-intro">按每位玩家的海克斯模式历史平均分排序。为减少单局偶然性，至少完成 3 局才进入榜单；显示平均分、局数与个人最高分。</p>
+    <p id="hextechAverageLeaderboardStatus" class="leaderboard-note" role="status" aria-live="polite">正在统计全球平均分…</p>
+    <ol id="hextechAverageLeaderboardList" class="hextech-leaderboard-list"></ol>
+    <button id="hextechAverageLeaderboardRefreshBtn" class="primary-button" type="button">刷新平均分榜</button>
   </section>
 
   <section id="gameView" class="hidden">
