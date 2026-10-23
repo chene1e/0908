@@ -49,18 +49,39 @@ const LEVEL_SCORES = [
 ];
 const HEXTECH_MILESTONES = [4, 12, 22];
 const HEXTECH_AUGMENTS = [
+ // 银色：稳定收益、宽松操作与前期成长
  {id:"cashBack",tier:"silver",tierName:"银色强化",name:"合成返现",description:"每次合成额外获得 18 分。",note:"稳定收益"},
  {id:"luckyFaces",tier:"silver",tierName:"银色强化",name:"欧皇基因",description:"闪光群友出现概率提高 8 个百分点。",note:"更多稀有群友"},
  {id:"steadyHands",tier:"silver",tierName:"银色强化",name:"连击热手",description:"连击判定时间延长至 7 秒。",note:"更宽松的连击窗口"},
  {id:"speedyHands",tier:"silver",tierName:"银色强化",name:"极速投放",description:"缩短投放间隔，让操作更流畅。",note:"更快投放"},
+ {id:"mergeScholar",tier:"silver",tierName:"银色强化",name:"合成学徒",description:"每次合成额外获得 8 分，可与其他加分效果叠加。",note:"稳定小额收益"},
+ {id:"rareWhisper",tier:"silver",tierName:"银色强化",name:"稀有耳语",description:"闪光群友出现概率额外提高 4 个百分点。",note:"偏向稀有收集"},
+ {id:"smallSteps",tier:"silver",tierName:"银色强化",name:"小步快跑",description:"合成等级 1–3 的群友时，得分提高 50%。",note:"前期成长流"},
+ {id:"comboRhythm",tier:"silver",tierName:"银色强化",name:"连击节拍",description:"连击倍率提高至 ×1.75。",note:"连击流入门"},
+ {id:"streakPurse",tier:"silver",tierName:"银色强化",name:"五连红包",description:"每完成第 5、10、15…次合成，额外获得 60 分。",note:"合成里程碑奖励"},
+ {id:"firstAid",tier:"silver",tierName:"银色强化",name:"备用护身符",description:"本局获得一次濒临失败时的保护。",note:"容错一次"},
+ // 金色：中期构筑、连击与高等级收益
  {id:"bigMerge",tier:"gold",tierName:"金色强化",name:"高能合成",description:"所有合成基础得分提高 50%。",note:"每次合成都受益"},
  {id:"comboEngine",tier:"gold",tierName:"金色强化",name:"连击引擎",description:"从 2 连击开始获得倍率，倍率提高到 ×2。",note:"奖励连续合成"},
  {id:"eventMachine",tier:"gold",tierName:"金色强化",name:"事件加速器",description:"随机事件出现得更频繁。",note:"更多惊喜事件"},
  {id:"safetyNet",tier:"gold",tierName:"金色强化",name:"救场护盾",description:"本局第一次濒临失败时，自动化险为夷。",note:"一次保护机会"},
+ {id:"highRoller",tier:"gold",tierName:"金色强化",name:"闪光收藏家",description:"闪光群友的合成奖励提高到 ×4。",note:"稀有收益流"},
+ {id:"veteranCraft",tier:"gold",tierName:"金色强化",name:"资深手艺",description:"合成等级 5 及以上的群友时，得分提高 35%。",note:"高等级合成流"},
+ {id:"hotStreak",tier:"gold",tierName:"金色强化",name:"三连红包",description:"每完成第 3、6、9…次合成，额外获得 80 分。",note:"节奏越稳收益越高"},
+ {id:"chainDividend",tier:"gold",tierName:"金色强化",name:"连击分红",description:"进入连击状态后，每次连击合成额外获得 25 分。",note:"鼓励持续连击"},
+ {id:"goldenTouch",tier:"gold",tierName:"金色强化",name:"点石成金",description:"所有合成得分额外提高 25%。",note:"泛用增伤"},
+ {id:"luckyTempo",tier:"gold",tierName:"金色强化",name:"好运节拍",description:"连击判定时间延长至 6.5 秒，连击倍率提高至 ×1.8。",note:"稳定连击流"},
+ // 棱彩：强力流派与高上限组合
  {id:"smallMerge",tier:"prismatic",tierName:"棱彩强化",name:"小球大计",description:"合成等级 1–3 的群友时，获得双倍分数。",note:"低级合成流派"},
  {id:"prismaticLuck",tier:"prismatic",tierName:"棱彩强化",name:"棱彩欧皇",description:"闪光群友更常出现，稀有合成奖励提高到 ×5。",note:"高风险高收益"},
  {id:"tripleBurst",tier:"prismatic",tierName:"棱彩强化",name:"三倍爆发",description:"接下来 3 次合成得分变为三倍。",note:"抓住爆发窗口"},
- {id:"compoundInterest",tier:"prismatic",tierName:"棱彩强化",name:"复利核心",description:"每完成第 5、10、15…次合成，额外获得 120 分。",note:"越合越赚"}
+ {id:"compoundInterest",tier:"prismatic",tierName:"棱彩强化",name:"复利核心",description:"每完成第 5、10、15…次合成，额外获得 120 分。",note:"越合越赚"},
+ {id:"kingmaker",tier:"prismatic",tierName:"棱彩强化",name:"高阶王权",description:"合成等级 6 及以上的群友时，得分提高 60%。",note:"冲击高等级"},
+ {id:"limitBreak",tier:"prismatic",tierName:"棱彩强化",name:"极限突破",description:"所有合成得分额外提高 75%。",note:"高上限泛用流"},
+ {id:"comboOverdrive",tier:"prismatic",tierName:"棱彩强化",name:"连击超载",description:"从 2 连击开始触发倍率，连击倍率提高至 ×2.5。",note:"连击核心流派"},
+ {id:"jackpotEngine",tier:"prismatic",tierName:"棱彩强化",name:"欧皇引擎",description:"闪光群友概率额外提高 12 个百分点，闪光奖励提高到 ×4。",note:"稀有爆发流"},
+ {id:"everyThree",tier:"prismatic",tierName:"棱彩强化",name:"三步登天",description:"每完成第 3、6、9…次合成，额外获得 100 分。",note:"快速合成流"},
+ {id:"goldRush",tier:"prismatic",tierName:"棱彩强化",name:"黄金洪流",description:"每次合成额外获得 35 分，并且每第 10 次合成再获得 250 分。",note:"持续收益与爆发"}
 ];
 
 // 顶部投放区域的高度
@@ -193,6 +214,7 @@ let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus
 let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
 let hextechDropCooldownMs = 250, hextechDropRecoveryMs = 450, hextechEventFrequencyMultiplier = 1;
 let hextechShieldCharges = 0, hextechSmallMergeMultiplier = 1, hextechTripleMergesRemaining = 0, hextechEveryFiveMergesBonus = 0;
+let hextechHighLevelMultiplier = 1, hextechEveryThreeMergesBonus = 0, hextechEveryTenMergesBonus = 0, hextechComboFlatBonus = 0;
 let hextechScoreSubmitted = false;
 const PROGRESS_KEY = "bigGroupProgressV1";
 const DAILY_KEY = "bigGroupDailyV1";
@@ -376,14 +398,32 @@ function applyHextechAugment(a) {
         case "luckyFaces": hextechRareChanceBonus += 0.08; break;
         case "steadyHands": hextechComboWindowMs = Math.max(hextechComboWindowMs, 7000); break;
         case "speedyHands": hextechDropCooldownMs = Math.min(hextechDropCooldownMs, 180); hextechDropRecoveryMs = Math.min(hextechDropRecoveryMs, 320); break;
+        case "mergeScholar": hextechBonusPerMerge += 8; break;
+        case "rareWhisper": hextechRareChanceBonus += 0.04; break;
+        case "smallSteps": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 1.5); break;
+        case "comboRhythm": hextechComboMultiplier = Math.max(hextechComboMultiplier, 1.75); break;
+        case "streakPurse": hextechEveryFiveMergesBonus += 60; break;
+        case "firstAid": hextechShieldCharges += 1; break;
         case "bigMerge": hextechScoreMultiplier += 0.5; break;
         case "comboEngine": hextechComboThreshold = 2; hextechComboMultiplier = Math.max(hextechComboMultiplier, 2); break;
         case "eventMachine": hextechEventFrequencyMultiplier = Math.min(hextechEventFrequencyMultiplier, 0.72); break;
         case "safetyNet": hextechShieldCharges += 1; break;
+        case "highRoller": hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 4); break;
+        case "veteranCraft": hextechHighLevelMultiplier = Math.max(hextechHighLevelMultiplier, 1.35); break;
+        case "hotStreak": hextechEveryThreeMergesBonus += 80; break;
+        case "chainDividend": hextechComboFlatBonus += 25; break;
+        case "goldenTouch": hextechScoreMultiplier += 0.25; break;
+        case "luckyTempo": hextechComboWindowMs = Math.max(hextechComboWindowMs, 6500); hextechComboMultiplier = Math.max(hextechComboMultiplier, 1.8); break;
         case "smallMerge": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 2); break;
         case "prismaticLuck": hextechRareChanceBonus += 0.18; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 5); break;
         case "tripleBurst": hextechTripleMergesRemaining += 3; break;
         case "compoundInterest": hextechEveryFiveMergesBonus += 120; break;
+        case "kingmaker": hextechHighLevelMultiplier = Math.max(hextechHighLevelMultiplier, 1.6); break;
+        case "limitBreak": hextechScoreMultiplier += 0.75; break;
+        case "comboOverdrive": hextechComboThreshold = 2; hextechComboMultiplier = Math.max(hextechComboMultiplier, 2.5); break;
+        case "jackpotEngine": hextechRareChanceBonus += 0.12; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 4); break;
+        case "everyThree": hextechEveryThreeMergesBonus += 100; break;
+        case "goldRush": hextechBonusPerMerge += 35; hextechEveryTenMergesBonus += 250; break;
     }
 }
 function chooseHextechAugment(a) {
@@ -400,8 +440,9 @@ function offerHextechIfDue() {
     if (!hextechOverlay || !hextechChoices) return false;
     paused = true; gameOverTimer = 0; if (runner) Runner.stop(runner);
     hextechChoices.replaceChildren();
-    if (hextechOfferHint) hextechOfferHint.textContent = "第 " + (hextechOffersTaken + 1) + " 次强化 · 已合成 " + roundMerges + " 次。三选一，效果持续到本局结束。";
-    const pool = HEXTECH_AUGMENTS.filter(a => !hextechOwned.some(item => item.id === a.id));
+    if (hextechOfferHint) hextechOfferHint.textContent = "第 " + (hextechOffersTaken + 1) + " 次强化 · " + ["银色","金色","棱彩"][hextechOffersTaken] + "品质 · 已合成 " + roundMerges + " 次。同一轮只出现同品质强化，效果持续到本局结束。";
+    const tierForOffer = ["silver", "gold", "prismatic"][hextechOffersTaken];
+    const pool = HEXTECH_AUGMENTS.filter(a => a.tier === tierForOffer && !hextechOwned.some(item => item.id === a.id));
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     pool.slice(0, 3).forEach(a => {
         const b = document.createElement("button"); b.type = "button"; b.className = "hextech-card tier-" + a.tier;
@@ -461,6 +502,7 @@ function resetHextechRun() {
     hextechComboWindowMs = 4500; hextechComboThreshold = 3; hextechComboMultiplier = 1.5;
     hextechDropCooldownMs = 250; hextechDropRecoveryMs = 450; hextechEventFrequencyMultiplier = 1;
     hextechShieldCharges = 0; hextechSmallMergeMultiplier = 1; hextechTripleMergesRemaining = 0; hextechEveryFiveMergesBonus = 0;
+    hextechHighLevelMultiplier = 1; hextechEveryThreeMergesBonus = 0; hextechEveryTenMergesBonus = 0; hextechComboFlatBonus = 0;
     try { bestScore = Number(localStorage.getItem(hextechModeActive ? "mergeHexBestScore" : "mergeBestScore")) || 0; } catch (_) { bestScore = 0; }
     bestScoreElement.textContent = bestScore;
     hextechScoreSubmitted = false;
@@ -1475,9 +1517,16 @@ function processMergeQueue() {
         const rareChance = hextechModeActive ? Math.min(0.5, 0.09 + hextechRareChanceBonus) : 0.09;
         const isRare = Math.random() < rareChance;
         let earned = Math.round(LEVEL_SCORES[newLevel - 1] * multiplier * (hextechModeActive ? hextechScoreMultiplier : 1));
+        if (hextechModeActive && newLevel >= 5) earned = Math.round(earned * hextechHighLevelMultiplier);
         if (hextechModeActive && item.level <= 3) earned = Math.round(earned * hextechSmallMergeMultiplier);
         if (hextechModeActive && hextechTripleMergesRemaining > 0) { earned *= 3; hextechTripleMergesRemaining--; }
-        if (hextechModeActive) { earned += hextechBonusPerMerge; if (roundMerges % 5 === 0) earned += hextechEveryFiveMergesBonus; }
+        if (hextechModeActive) {
+            earned += hextechBonusPerMerge;
+            if (roundMerges % 3 === 0) earned += hextechEveryThreeMergesBonus;
+            if (roundMerges % 5 === 0) earned += hextechEveryFiveMergesBonus;
+            if (roundMerges % 10 === 0) earned += hextechEveryTenMergesBonus;
+            if (comboCount >= comboThreshold) earned += hextechComboFlatBonus;
+        }
         if (nextMergeBonus) {
             earned += LEVEL_SCORES[newLevel - 1] * 2;
             nextMergeBonus = false;
