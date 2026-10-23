@@ -71,17 +71,17 @@ const HEXTECH_AUGMENTS = [
  {id:"luckyTempo",tier:"gold",tierName:"金色强化",name:"好运节拍",description:"连击判定时间延长至 6.5 秒，连击倍率提高至 ×1.8。",note:"稳定连击流"},
  {id:"clearGold",tier:"gold",tierName:"金色强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 2、Level 3 群友消失。",note:"一次性清除 Level 2–3"},
  // 棱彩：强力流派与高上限组合
- {id:"smallMerge",tier:"prismatic",tierName:"棱彩强化",name:"小球大计",description:"合成等级 1–3 的群友时，获得双倍分数。",note:"低级合成流派"},
- {id:"prismaticLuck",tier:"prismatic",tierName:"棱彩强化",name:"棱彩欧皇",description:"闪光群友更常出现，稀有合成奖励提高到 ×5。",note:"高风险高收益"},
- {id:"tripleBurst",tier:"prismatic",tierName:"棱彩强化",name:"三倍爆发",description:"接下来 3 次合成得分变为三倍。",note:"抓住爆发窗口"},
- {id:"compoundInterest",tier:"prismatic",tierName:"棱彩强化",name:"复利核心",description:"每完成第 5、10、15…次合成，额外获得 120 分。",note:"越合越赚"},
- {id:"kingmaker",tier:"prismatic",tierName:"棱彩强化",name:"高阶王权",description:"合成等级 6 及以上的群友时，得分提高 60%。",note:"冲击高等级"},
- {id:"limitBreak",tier:"prismatic",tierName:"棱彩强化",name:"极限突破",description:"所有合成得分额外提高 75%。",note:"高上限泛用流"},
- {id:"comboOverdrive",tier:"prismatic",tierName:"棱彩强化",name:"连击超载",description:"从 2 连击开始触发倍率，连击倍率提高至 ×2.5。",note:"连击核心流派"},
- {id:"jackpotEngine",tier:"prismatic",tierName:"棱彩强化",name:"欧皇引擎",description:"闪光群友概率额外提高 12 个百分点，闪光奖励提高到 ×4。",note:"稀有爆发流"},
- {id:"everyThree",tier:"prismatic",tierName:"棱彩强化",name:"三步登天",description:"每完成第 3、6、9…次合成，额外获得 100 分。",note:"快速合成流"},
- {id:"goldRush",tier:"prismatic",tierName:"棱彩强化",name:"黄金洪流",description:"每次合成额外获得 35 分，并且每第 10 次合成再获得 250 分。",note:"持续收益与爆发"},
- {id:"clearPrismatic",tier:"prismatic",tierName:"棱彩强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 1、Level 2、Level 3 群友消失。",note:"一次性清除 Level 1–3"}
+ {id:"smallMerge",tier:"prismatic",tierName:"棱彩强化",name:"小球大计",description:"合成等级 1–3 的群友时，获得三倍分数。",note:"低级合成流派，收益大幅提升"},
+ {id:"prismaticLuck",tier:"prismatic",tierName:"棱彩强化",name:"棱彩欧皇",description:"闪光群友出现概率提高 25 个百分点，稀有合成奖励提高到 ×6。",note:"高概率稀有爆发流"},
+ {id:"tripleBurst",tier:"prismatic",tierName:"棱彩强化",name:"三倍爆发",description:"接下来 5 次合成得分变为三倍。",note:"持续爆发窗口"},
+ {id:"compoundInterest",tier:"prismatic",tierName:"棱彩强化",name:"复利核心",description:"每完成第 5、10、15…次合成，额外获得 200 分。",note:"高额里程碑收益"},
+ {id:"kingmaker",tier:"prismatic",tierName:"棱彩强化",name:"高阶王权",description:"合成等级 5 及以上的群友时，得分提高 100%。",note:"高等级合成收益翻倍"},
+ {id:"limitBreak",tier:"prismatic",tierName:"棱彩强化",name:"极限突破",description:"所有合成得分额外提高 125%。",note:"全阶段强力泛用"},
+ {id:"comboOverdrive",tier:"prismatic",tierName:"棱彩强化",name:"连击超载",description:"从 2 连击开始触发倍率，连击倍率提高至 ×3。",note:"超高连击收益"},
+ {id:"jackpotEngine",tier:"prismatic",tierName:"棱彩强化",name:"欧皇引擎",description:"闪光群友概率额外提高 20 个百分点，闪光奖励提高到 ×6。",note:"高概率稀有爆发流"},
+ {id:"everyThree",tier:"prismatic",tierName:"棱彩强化",name:"三步登天",description:"每完成第 3、6、9…次合成，额外获得 180 分。",note:"高频高额合成奖励"},
+ {id:"goldRush",tier:"prismatic",tierName:"棱彩强化",name:"黄金洪流",description:"每次合成额外获得 60 分，并且每第 10 次合成再获得 500 分。",note:"持续收益与高额爆发"},
+ {id:"clearPrismatic",tier:"prismatic",tierName:"棱彩强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 1–4 群友消失。",note:"一次性清除 Level 1–4"}
 ];
 
 // 顶部投放区域的高度
@@ -373,7 +373,7 @@ function renderHextechStatus() {
         const clearAbilities = [
             {id:"clearSilver", label:"消除按钮 · 银", levels:[3], tier:"silver"},
             {id:"clearGold", label:"消除按钮 · 金", levels:[2,3], tier:"gold"},
-            {id:"clearPrismatic", label:"消除按钮 · 棱彩", levels:[1,2,3], tier:"prismatic"}
+            {id:"clearPrismatic", label:"消除按钮 · 棱彩", levels:[1,2,3,4], tier:"prismatic"}
         ];
         clearAbilities.filter(ability => hextechOwned.some(item => item.id === ability.id)).forEach(ability => {
             const button = document.createElement("button");
@@ -450,16 +450,16 @@ function applyHextechAugment(a) {
         case "hotStreak": hextechEveryThreeMergesBonus += 80; break;
         case "chainDividend": hextechComboFlatBonus += 25; break;
         case "luckyTempo": hextechComboWindowMs = Math.max(hextechComboWindowMs, 6500); hextechComboMultiplier = Math.max(hextechComboMultiplier, 1.8); break;
-        case "smallMerge": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 2); break;
-        case "prismaticLuck": hextechRareChanceBonus += 0.18; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 5); break;
-        case "tripleBurst": hextechTripleMergesRemaining += 3; break;
-        case "compoundInterest": hextechEveryFiveMergesBonus += 120; break;
-        case "kingmaker": hextechHighLevelMultiplier = Math.max(hextechHighLevelMultiplier, 1.6); break;
-        case "limitBreak": hextechScoreMultiplier += 0.75; break;
-        case "comboOverdrive": hextechComboThreshold = 2; hextechComboMultiplier = Math.max(hextechComboMultiplier, 2.5); break;
-        case "jackpotEngine": hextechRareChanceBonus += 0.12; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 4); break;
-        case "everyThree": hextechEveryThreeMergesBonus += 100; break;
-        case "goldRush": hextechBonusPerMerge += 35; hextechEveryTenMergesBonus += 250; break;
+        case "smallMerge": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 3); break;
+        case "prismaticLuck": hextechRareChanceBonus += 0.25; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 6); break;
+        case "tripleBurst": hextechTripleMergesRemaining += 5; break;
+        case "compoundInterest": hextechEveryFiveMergesBonus += 200; break;
+        case "kingmaker": hextechHighLevelMultiplier = Math.max(hextechHighLevelMultiplier, 2); break;
+        case "limitBreak": hextechScoreMultiplier += 1.25; break;
+        case "comboOverdrive": hextechComboThreshold = 2; hextechComboMultiplier = Math.max(hextechComboMultiplier, 3); break;
+        case "jackpotEngine": hextechRareChanceBonus += 0.20; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 6); break;
+        case "everyThree": hextechEveryThreeMergesBonus += 180; break;
+        case "goldRush": hextechBonusPerMerge += 60; hextechEveryTenMergesBonus += 500; break;
     }
 }
 function chooseHextechAugment(a) {
