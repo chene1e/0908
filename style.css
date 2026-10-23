@@ -1089,3 +1089,13 @@ button {
 .hextech-augment-stat-row .hextech-average-metric { min-width:86px; }
 .hextech-augment-stat-row .hextech-average-metric strong { font-size:15px; }
 @media(max-width:420px) { .hextech-augment-stat-row { gap:6px; padding:10px 7px; } .hextech-augment-tier-icon { flex-basis:28px; width:28px; height:28px; } .hextech-augment-stat-row .hextech-average-metric { min-width:65px; } .hextech-augment-stat-row .hextech-average-metric strong { font-size:13px; } }
+
+
+/* 海克斯主动技能：获得对应强化后显示，每个按钮每局限用一次。 */
+.hextech-ability-buttons{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.hextech-ability-button{border:1px solid #c9b98d;border-radius:9px;padding:8px 11px;background:#fffdf7;color:#51432c;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s}
+.hextech-ability-button.tier-gold{background:#fff5d7;border-color:#d6b34d;color:#775400}
+.hextech-ability-button.tier-prismatic{background:#f2eaff;border-color:#bba0e8;color:#65439a}
+.hextech-ability-button:hover:not(:disabled){filter:brightness(.97)}
+.hextech-ability-button:disabled{opacity:.58;cursor:not-allowed}
+@media(max-width:420px){.hextech-ability-button{padding:7px 8px;font-size:11px}}
