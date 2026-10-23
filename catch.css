@@ -2,3 +2,5 @@
 .best-strip{display:flex;align-items:center;gap:8px;margin:0 0 9px;padding:7px 11px;border-radius:10px;background:#11162b;border:1px solid #3a4267;color:var(--muted);font-size:11px}
 .best-strip strong{color:var(--gold);font-size:16px}
 #bestBadge{margin-left:auto;color:var(--aqua);font-weight:800}
+
+[hidden]{display:none!important}
