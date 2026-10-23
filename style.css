@@ -745,3 +745,21 @@ button {
 .library-game-copy{min-width:0}
 .library-game-copy strong,.library-game-copy small{overflow-wrap:anywhere}
 @media(max-width:360px){.library-tools{grid-template-columns:1fr}.library-tools p{grid-column:1}.cover-screen h1{font-size:26px}}
+
+
+/* 全站统一游客资料卡：仅用于游戏库首页，不影响各游戏的局内样式 */
+.global-profile{display:flex;align-items:flex-start;gap:13px;max-width:420px;margin:18px auto 16px;padding:14px;text-align:left;background:#fff;border:1px solid #f0e3cf;border-radius:16px;box-shadow:0 3px 12px #523b160a}
+.global-profile-avatar{width:62px;height:62px;flex:0 0 62px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f4ead8;border:2px solid #f1d7a7}
+.global-profile-avatar img{width:100%;height:100%;object-fit:cover}
+.global-profile-avatar span{font-size:30px}
+.global-profile-fields{flex:1;min-width:0}
+.global-profile-fields>label{display:block;margin:0 0 6px;font-size:13px;color:#665744;font-weight:700}
+.global-profile-fields>input{width:100%;min-width:0;padding:11px 12px;border:1px solid #e7dac5;border-radius:9px;font-size:16px;color:#352719;background:#fff}
+.global-profile-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:9px 0}
+.global-avatar-upload{color:#98661b;font-size:12px;cursor:pointer;text-decoration:underline}
+.global-profile-row small{font-size:10px;color:#8b8174}
+.global-profile-row code{font-family:ui-monospace,monospace;color:#6c5b43}
+.global-save-button{width:100%;padding:10px 12px;font-size:13px}
+#siteProfileStatus{margin:8px 0 0;color:#8b8174;font-size:11px;line-height:1.5}
+.library-tools{grid-template-columns:minmax(0,1fr);max-width:240px}
+.library-tools select{width:100%}
