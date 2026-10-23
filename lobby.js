@@ -2,7 +2,7 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const cover = $("cover"), gameView = $("gameView"), leaderboardView = $("leaderboardView");
-  const hextechLeaderboardView = $("hextechLeaderboardView");
+  const hextechLeaderboardView = null;
   const hextechAverageLeaderboardView = $("hextechAverageLeaderboardView");
   const hextechLeaderboardList = $("hextechLeaderboardList");
   const hextechLeaderboardStatus = $("hextechLeaderboardStatus");
@@ -24,6 +24,7 @@
   let currentElapsedMs = null;
   let currentRoundWon = false;
   let rankingMode = "score";
+  let leaderboardType = "score";
   let rankingPage = 1;
   let cachedLeaderboardRows = [];
   const rankingPageSize = 10;
@@ -351,15 +352,27 @@
       li.append(rank, img, info, metric); leaderboardList.appendChild(li);
     });
   }
-  function setRankingMode(mode) {
-    rankingMode = mode;
-    $("scoreLeaderboardTab").classList.toggle("active", mode === "score");
-    $("timeLeaderboardTab").classList.toggle("active", mode === "time");
-    $("scoreLeaderboardTab").setAttribute("aria-pressed", String(mode === "score"));
-    $("timeLeaderboardTab").setAttribute("aria-pressed", String(mode === "time"));
+  function setLeaderboardType(type) {
+    leaderboardType = type;
+    const isHextech = type === "hextech";
+    const isTime = type === "time";
+    $("scoreLeaderboardTab").classList.toggle("active", type === "score");
+    $("timeLeaderboardTab").classList.toggle("active", isTime);
+    $("hextechLeaderboardTab").classList.toggle("active", isHextech);
+    $("scoreLeaderboardTab").setAttribute("aria-pressed", String(type === "score"));
+    $("timeLeaderboardTab").setAttribute("aria-pressed", String(isTime));
+    $("hextechLeaderboardTab").setAttribute("aria-pressed", String(isHextech));
+    $("classicLeaderboardContent").classList.toggle("hidden", isHextech);
+    $("hextechLeaderboardContent").classList.toggle("hidden", !isHextech);
+    if (!isHextech) rankingMode = isTime ? "time" : "score";
+    $("leaderboardRefreshBtn").textContent = isHextech ? "刷新海克斯排行榜" : "刷新当前排行榜";
     loadLeaderboard();
   }
   async function loadLeaderboard() {
+    if (leaderboardType === "hextech") {
+      loadHextechLeaderboard();
+      return;
+    }
     rankingPage = 1;
     const cached = readRankingCache(rankingMode);
     if (cached) {
@@ -617,16 +630,16 @@
   });
   $("coverLeaderboardBtn").addEventListener("click", function () {
     cover.classList.add("hidden"); gameView.classList.add("hidden");
-    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
     if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
-    leaderboardView.classList.remove("hidden"); loadLeaderboard();
+    leaderboardView.classList.remove("hidden");
+    setLeaderboardType("score");
   });
   $("coverHextechLeaderboardBtn").addEventListener("click", function () {
-    cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
-    hextechLeaderboardView.classList.remove("hidden"); loadHextechLeaderboard();
+    cover.classList.add("hidden"); gameView.classList.add("hidden");
+    if (hextechAverageLeaderboardView) hextechAverageLeaderboardView.classList.add("hidden");
+    leaderboardView.classList.remove("hidden");
+    setLeaderboardType("hextech");
   });
-  $("hextechLeaderboardBackBtn").addEventListener("click", backToCover);
-  $("hextechLeaderboardRefreshBtn").addEventListener("click", loadHextechLeaderboard);
   const averageBoardButton = $("coverHextechAverageLeaderboardBtn");
   if (averageBoardButton) averageBoardButton.addEventListener("click", function () {
     cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
@@ -675,8 +688,9 @@
     }
     renderRows(cachedLeaderboardRows, rankingMode);
   }
-  $("scoreLeaderboardTab").addEventListener("click", function () { setRankingMode("score"); });
-  $("timeLeaderboardTab").addEventListener("click", function () { setRankingMode("time"); });
+  $("scoreLeaderboardTab").addEventListener("click", function () { setLeaderboardType("score"); });
+  $("timeLeaderboardTab").addEventListener("click", function () { setLeaderboardType("time"); });
+  $("hextechLeaderboardTab").addEventListener("click", function () { setLeaderboardType("hextech"); });
   const adModal = $("adModal");
   function closeAdModal() {
     if (adModal) adModal.classList.add("hidden");
