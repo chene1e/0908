@@ -1019,3 +1019,33 @@ button {
 .hextech-card small{margin-top:auto;color:#9f98b9;font-size:10px}
 .hextech-footnote{margin:16px 0 0;color:#aaa4c2;font-size:10px;line-height:1.5}
 @media(max-width:560px){.hextech-panel{padding:19px 14px}.hextech-choices{grid-template-columns:1fr;gap:9px}.hextech-card{min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;padding:12px}.hextech-card .hextech-tier{grid-column:1;grid-row:1;align-self:start}.hextech-card strong{grid-column:2;grid-row:1;align-self:center}.hextech-card p,.hextech-card small{grid-column:1/-1}.hextech-card small{margin-top:0}}
+
+
+/* 海克斯模式宣传、已选强化说明与独立全球排行榜 */
+.hextech-cover-teaser { margin:10px 0 0; padding:9px 10px; border:1px solid #ead7a9; border-radius:10px; background:linear-gradient(110deg,#fff6dd,#fffbf2); color:#896124; font-size:11px; text-align:center; line-height:1.5; }
+.hextech-cover-teaser strong { color:#8d5c13; font-size:15px; }
+.hextech-owned-chip { position:relative; appearance:none; border:1px solid #dfc482; font:inherit; cursor:help; }
+.hextech-owned-chip:focus-visible { outline:2px solid #8d6725; outline-offset:2px; }
+.hextech-owned-chip::after { content:attr(data-tooltip); display:none; position:absolute; z-index:30; left:0; bottom:calc(100% + 7px); width:max-content; max-width:min(260px,75vw); padding:8px 10px; border:1px solid #d9c18c; border-radius:8px; background:#211e2d; color:#fff7dd; box-shadow:0 5px 18px #0003; font-size:11px; font-weight:500; line-height:1.5; white-space:normal; pointer-events:none; }
+.hextech-owned-chip:hover::after,.hextech-owned-chip:focus-visible::after { display:block; }
+.hextech-owned-info { margin-top:9px; padding:9px 11px; border:1px solid #d8bd79; border-radius:9px; background:#fffbef; color:#624715; font-size:12px; line-height:1.55; }
+.hextech-owned-info.hidden,.hextech-score-status.hidden { display:none!important; }
+.hextech-score-status { margin:10px 0; color:#725322; font-size:12px; line-height:1.5; }
+.hextech-board-intro { margin:8px 0 18px; color:#7a6a56; font-size:12px; line-height:1.6; }
+.hextech-leaderboard-list { list-style:none; padding:0; margin:16px 0; }
+.hextech-rank-row { display:grid; grid-template-columns:28px 44px minmax(0,1fr) auto; align-items:center; gap:9px; padding:12px 2px; border-bottom:1px solid #eadfcd; }
+.hextech-rank-number { color:#9a6b1b; font-weight:900; text-align:center; }
+.hextech-rank-avatar { display:block; width:42px; height:42px; border-radius:50%; object-fit:cover; border:1px solid #d7c4a1; background:#f4ead8; }
+.hextech-rank-info { min-width:0; }
+.hextech-rank-name { display:block; color:#342b20; font-size:13px; font-weight:850; overflow-wrap:anywhere; }
+.hextech-rank-meta { display:block; margin-top:4px; color:#8a7e6b; font-size:10px; line-height:1.5; }
+.hextech-rank-build { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.hextech-rank-build span { padding:3px 6px; border-radius:999px; background:#f4e6c7; color:#76541c; font-size:9px; }
+.hextech-rank-score { color:#9a6b1b; font-size:15px; font-weight:900; white-space:nowrap; text-align:right; }
+.hextech-ranking-empty { padding:26px 8px; text-align:center; color:#8a7e6b; font-size:13px; }
+@media(max-width:400px) {
+  .hextech-rank-row { grid-template-columns:23px 36px minmax(0,1fr); gap:6px; }
+  .hextech-rank-avatar { width:34px; height:34px; }
+  .hextech-rank-score { grid-column:3; text-align:left; font-size:13px; }
+  .hextech-rank-info { grid-column:3; }
+}
