@@ -32,6 +32,8 @@ async function api(path, options) {
   if (response.status === 204) return [];
   const body = await response.text(); return body ? JSON.parse(body) : [];
 }
+function bestKey(playerId) { return "catchFriendsBestV1:" + playerId; }
+function readBest(playerId) { try { return Math.max(0, Number(localStorage.getItem(bestKey(playerId))) || 0); } catch (_) { return 0; } }
 function profileUI() {
   const p = getProfile();
   $("profileName").textContent = p.name || "尚未设置昵称";
@@ -91,7 +93,7 @@ function startRound() {
   if (!p.name) { $("coverStatus").textContent = "请先到游戏库首页设置昵称，再开始游戏。"; return; }
   score = 0; lives = 3; caught = 0; missed = 0; combo = 0; maxCombo = 0; elapsed = 0; spawnClock = 0;
   basketX = W / 2; objects = []; floaters = []; roundId = uid(); finalRow = null; finishReason = "lives";
-  $("score").textContent = "0"; $("timeLeft").textContent = "60"; setLives();
+  $("score").textContent = "0"; $("timeLeft").textContent = "60"; $("bestScore").textContent = readBest(p.playerId).toLocaleString(); $("bestBadge").textContent = ""; setLives();
   $("comboLabel").textContent = "连击 ×0"; $("resultOverlay").classList.add("hidden"); $("retryUploadButton").classList.add("hidden");
   showOnly("game"); running = true; startAt = performance.now(); lastFrame = startAt; raf = requestAnimationFrame(frame);
 }
@@ -147,13 +149,20 @@ function finish(reason) {
   if (!running) return;
   running = false; cancelAnimationFrame(raf); finishReason = reason;
   const p = getProfile(); const duration = Math.min(DURATION, Math.max(0, elapsed));
+  const oldBest = readBest(p.playerId);
+  const isRecord = score > oldBest;
+  const newBest = Math.max(oldBest, score);
+  try { localStorage.setItem(bestKey(p.playerId), String(newBest)); } catch (_) {}
+  $("bestScore").textContent = newBest.toLocaleString();
+  $("finalBest").textContent = newBest.toLocaleString();
+  $("bestBadge").textContent = isRecord ? "新纪录！" : "";
   finalRow = {
     round_id: roundId, player_id: p.playerId, name: (p.name || "神秘群友").slice(0, 40), avatar: p.avatar || "",
     target_level: selected, score, caught_count: caught, missed_count: missed, max_combo: maxCombo,
     survival_seconds: Number(duration.toFixed(2)), finish_reason: reason, created_at: new Date().toISOString()
   };
   storeLocal(finalRow);
-  $("resultTitle").textContent = reason === "lives" ? "❤️ 生命耗尽" : reason === "manual" ? "本局提前结束" : "⏱️ 时间到！";
+  $("resultTitle").textContent = isRecord ? "🏆 刷新个人纪录！" : reason === "lives" ? "❤️ 生命耗尽" : reason === "manual" ? "本局提前结束" : "⏱️ 时间到！";
   $("finalScore").textContent = score.toLocaleString(); $("finalCaught").textContent = String(caught);
   $("finalMissed").textContent = String(missed); $("finalCombo").textContent = String(maxCombo); $("finalDuration").textContent = roundTime(duration * 1000);
   $("finishTimestamp").textContent = "完成时间：" + formatDate(finalRow.created_at) + " · 心仪群友：" + AVATARS[selected - 1].name;
