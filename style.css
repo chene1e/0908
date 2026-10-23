@@ -901,3 +901,76 @@ button {
 .global-profile-avatar:hover .global-profile-avatar-camera {
   background: #70480d;
 }
+
+
+/* 最终头像布局修复：照片与默认人像叠放，禁止它们作为并排 Flex 子项互相挤出圆框。 */
+.global-profile-avatar {
+  position: relative !important;
+  display: block !important;
+  flex: 0 0 62px !important;
+  width: 62px !important;
+  min-width: 62px !important;
+  max-width: 62px !important;
+  height: 62px !important;
+  min-height: 62px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 2px solid #f1d7a7 !important;
+  border-radius: 50% !important;
+  line-height: 0 !important;
+}
+.global-profile-avatar > #siteAvatarPreview,
+.global-profile-avatar > #siteAvatarFallback {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+}
+.global-profile-avatar > #siteAvatarPreview {
+  z-index: 1;
+}
+.global-profile-avatar > #siteAvatarPreview[hidden] {
+  display: none !important;
+}
+.global-profile-avatar > #siteAvatarPreview:not([hidden]) {
+  display: block !important;
+}
+.global-profile-avatar > #siteAvatarFallback {
+  z-index: 1;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+  background: #f4ead8;
+}
+.global-profile-avatar.has-avatar > #siteAvatarFallback,
+.global-profile-avatar > #siteAvatarFallback[hidden] {
+  display: none !important;
+}
+.global-profile-avatar::after {
+  content: "📷" !important;
+  position: absolute !important;
+  z-index: 3 !important;
+  right: -3px !important;
+  bottom: -2px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 25px !important;
+  height: 25px !important;
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
+  background: #98661b !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  box-shadow: 0 1px 4px #0002 !important;
+  pointer-events: none !important;
+}
+.global-profile-avatar-camera { display: none !important; }
