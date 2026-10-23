@@ -2,6 +2,14 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const cover = $("cover"), gameView = $("gameView"), leaderboardView = $("leaderboardView");
+  const hextechLeaderboardView = $("hextechLeaderboardView");
+  const hextechLeaderboardList = $("hextechLeaderboardList");
+  const hextechLeaderboardStatus = $("hextechLeaderboardStatus");
+  let hextechLeaderboardRequest = 0;
+  let hextechScoreSyncBusy = false;
+  const hextechLocalScoresKey = "mergeHextechScoresV1";
+  const hextechPendingScoresKey = "mergeHextechPendingScoresV1";
+  const hextechLeaderboardCacheKey = "mergeHextechLeaderboardCacheV1";
   const libraryCover = $("libraryCover"), developmentView = $("developmentView");
   const nameInput = $("playerName"), avatarInput = $("avatarInput"), avatarPreview = $("avatarPreview"), avatarFallback = $("avatarFallback");
   const profileHint = $("profileHint"), leaderboardList = $("leaderboardList"), leaderboardStatus = $("leaderboardStatus");
@@ -91,6 +99,136 @@
     throw lastError || new Error("云端请求失败，请稍后重试。");
   }
 
+
+  function readHextechLocalScores() {
+    try { const rows = JSON.parse(localStorage.getItem(hextechLocalScoresKey) || "[]"); return Array.isArray(rows) ? rows.filter(row => row && row.run_id) : []; }
+    catch (_) { return []; }
+  }
+  function storeHextechLocalScore(row) {
+    const rows = readHextechLocalScores();
+    if (!rows.some(item => item.run_id === row.run_id)) rows.push(row);
+    try { localStorage.setItem(hextechLocalScoresKey, JSON.stringify(rows.slice(-30))); } catch (_) {}
+  }
+  function readHextechPendingScores() {
+    try { const rows = JSON.parse(localStorage.getItem(hextechPendingScoresKey) || "[]"); return Array.isArray(rows) ? rows.filter(row => row && row.run_id) : []; }
+    catch (_) { return []; }
+  }
+  function writeHextechPendingScores(rows) {
+    try { localStorage.setItem(hextechPendingScoresKey, JSON.stringify(rows.slice(-20))); } catch (_) {}
+  }
+  function queueHextechScore(row) {
+    const rows = readHextechPendingScores();
+    if (!rows.some(item => item.run_id === row.run_id)) rows.push(row);
+    writeHextechPendingScores(rows);
+  }
+  async function syncPendingHextechScores() {
+    if (hextechScoreSyncBusy) return { ok:false, pending:readHextechPendingScores().length, error:new Error("海克斯成绩同步正在进行中。") };
+    hextechScoreSyncBusy = true;
+    try {
+      if (!hasRemote()) throw new Error("云端数据库配置不可用。");
+      while (true) {
+        const queue = readHextechPendingScores();
+        if (!queue.length) return { ok:true, pending:0 };
+        const row = queue[0];
+        let saved = false;
+        let lastError = null;
+        try {
+          await remoteRequest("merge_hextech_scores", { method:"POST", headers:{ Prefer:"return=minimal" }, body:JSON.stringify(row) });
+          saved = true;
+        } catch (error) {
+          lastError = error;
+          try {
+            const verify = await remoteRequest("merge_hextech_scores?select=run_id&run_id=eq." + encodeURIComponent(row.run_id) + "&limit=1");
+            saved = Array.isArray(verify) && verify.some(item => String(item.run_id) === String(row.run_id));
+          } catch (_) {}
+        }
+        if (!saved) return { ok:false, pending:queue.length, error:lastError || new Error("云端暂未确认这条海克斯成绩。") };
+        writeHextechPendingScores(readHextechPendingScores().filter(item => item.run_id !== row.run_id));
+      }
+    } catch (error) {
+      return { ok:false, pending:readHextechPendingScores().length, error };
+    } finally { hextechScoreSyncBusy = false; }
+  }
+  window.submitHextechScore = async function (result) {
+    const profile = getProfile();
+    if (!profile.name || profile.name === "神秘群友") return { ok:false, localSaved:false, pending:0, error:new Error("请先设置全站昵称。") };
+    const runId = window.GameIdentity && typeof window.GameIdentity.newId === "function"
+      ? window.GameIdentity.newId()
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==="x"?r:(r&3|8)).toString(16); });
+    const row = {
+      run_id:runId, player_id:profile.playerId || null, name:profile.name.slice(0,40), avatar:profile.avatar || "",
+      score:Math.max(0,Math.floor(Number(result && result.score) || 0)),
+      merge_count:Math.max(0,Math.floor(Number(result && result.merge_count) || 0)),
+      highest_level:Math.min(9,Math.max(1,Math.floor(Number(result && result.highest_level) || 1))),
+      augments:Array.isArray(result && result.augments) ? result.augments.slice(0,3) : [],
+      created_at:new Date().toISOString()
+    };
+    storeHextechLocalScore(row);
+    queueHextechScore(row);
+    if (!hasRemote()) return { ok:false, localSaved:true, pending:readHextechPendingScores().length, error:new Error("云端数据库配置不可用。") };
+    const sync = await syncPendingHextechScores();
+    return { ok:sync.ok, localSaved:true, pending:sync.pending, error:sync.error, row };
+  };
+  function renderHextechLeaderboard(rows) {
+    if (!hextechLeaderboardList) return;
+    hextechLeaderboardList.replaceChildren();
+    const sorted = (Array.isArray(rows) ? rows : []).slice()
+      .sort((a,b) => Number(b.score || 0) - Number(a.score || 0) || String(a.created_at || "").localeCompare(String(b.created_at || "")))
+      .slice(0,20);
+    if (!sorted.length) {
+      const li = document.createElement("li"); li.className = "hextech-ranking-empty";
+      li.textContent = "还没有海克斯成绩，来打出第一份强化构筑记录吧！";
+      hextechLeaderboardList.appendChild(li); return;
+    }
+    sorted.forEach((row,index) => {
+      const li = document.createElement("li"); li.className = "hextech-rank-row";
+      const rank = document.createElement("span"); rank.className = "hextech-rank-number";
+      rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index+1);
+      const img = document.createElement("img"); img.className = "hextech-rank-avatar"; img.alt = ""; img.loading = "lazy";
+      const fallbackAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23f4ead8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
+      img.src = row.avatar || fallbackAvatar;
+      img.addEventListener("error", function () { this.onerror=null; this.src=fallbackAvatar; });
+      const info = document.createElement("div"); info.className = "hextech-rank-info";
+      const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = row.name || "神秘群友";
+      const meta = document.createElement("small"); meta.className = "hextech-rank-meta";
+      const when = row.created_at ? new Date(row.created_at).toLocaleString() : "本机记录";
+      meta.textContent = "最高等级 Lv." + Number(row.highest_level || 1) + " · 合成 " + Number(row.merge_count || 0) + " 次 · " + when;
+      info.append(name,meta);
+      const build = document.createElement("div"); build.className = "hextech-rank-build";
+      const augments = Array.isArray(row.augments) ? row.augments : [];
+      augments.slice(0,3).forEach(augment => {
+        const chip = document.createElement("span"); chip.title = augment.description || augment.name || "";
+        chip.textContent = augment.name || augment.id || "海克斯强化"; build.appendChild(chip);
+      });
+      if (!augments.length) { const chip = document.createElement("span"); chip.textContent = "未记录强化"; build.appendChild(chip); }
+      info.appendChild(build);
+      const metric = document.createElement("strong"); metric.className = "hextech-rank-score";
+      metric.textContent = Number(row.score || 0).toLocaleString() + " 分";
+      li.append(rank,img,info,metric); hextechLeaderboardList.appendChild(li);
+    });
+  }
+  async function loadHextechLeaderboard() {
+    if (!hextechLeaderboardStatus) return;
+    const requestId = ++hextechLeaderboardRequest;
+    hextechLeaderboardStatus.textContent = "正在读取海克斯全球排行榜…";
+    const cached = (() => { try { return JSON.parse(sessionStorage.getItem(hextechLeaderboardCacheKey) || "null"); } catch (_) { return null; } })();
+    if (Array.isArray(cached)) renderHextechLeaderboard(cached);
+    try {
+      if (!hasRemote()) throw new Error("云端数据库配置不可用。");
+      await syncPendingHextechScores();
+      const rows = await remoteRequest("merge_hextech_scores?select=run_id,player_id,name,avatar,score,merge_count,highest_level,augments,created_at&order=score.desc,created_at.asc&limit=20");
+      if (requestId !== hextechLeaderboardRequest) return;
+      renderHextechLeaderboard(rows);
+      try { sessionStorage.setItem(hextechLeaderboardCacheKey, JSON.stringify(rows)); } catch (_) {}
+      hextechLeaderboardStatus.textContent = "海克斯全球榜 · 前 " + rows.length + " 名；仅统计海克斯模式，成绩按分数从高到低排序。";
+    } catch (error) {
+      if (requestId !== hextechLeaderboardRequest) return;
+      const local = readHextechLocalScores().sort((a,b)=>Number(b.score||0)-Number(a.score||0)).slice(0,20);
+      renderHextechLeaderboard(local);
+      const detail = error && error.message ? String(error.message).slice(0,100) : "网络连接失败";
+      hextechLeaderboardStatus.textContent = "⚠ 云端排行榜暂不可用（" + detail + "）。当前显示的是本机记录，不代表全球排名。";
+    }
+  }
   function formatElapsed(ms) {
     const seconds = Number(ms) / 1000;
     return Number.isFinite(seconds) && seconds >= 0 ? seconds.toFixed(2) + " 秒" : "—";
@@ -353,6 +491,7 @@
   $("openMergeGameBtn").addEventListener("click", function () {
     if (libraryCover) libraryCover.classList.add("hidden");
     if (developmentView) developmentView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
     cover.classList.remove("hidden");
     window.scrollTo(0, 0);
   });
@@ -362,6 +501,7 @@
     cover.classList.add("hidden");
     gameView.classList.add("hidden");
     leaderboardView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
     if (developmentView) developmentView.classList.remove("hidden");
     window.scrollTo(0, 0);
   });
@@ -377,13 +517,16 @@
   });
   $("coverStartBtn").addEventListener("click", function () {
     if (!saveProfile()) return;
-    cover.classList.add("hidden"); leaderboardView.classList.add("hidden"); gameView.classList.remove("hidden");
+    cover.classList.add("hidden"); leaderboardView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    gameView.classList.remove("hidden");
     $("startBtn").click();
   });
   $("coverCollectionBtn").addEventListener("click", function () {
     cover.classList.add("hidden");
     gameView.classList.add("hidden");
     leaderboardView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
     const collectionView = $("collectionView");
     if (collectionView) {
       collectionView.classList.remove("hidden");
@@ -392,9 +535,20 @@
     }
   });
   $("coverLeaderboardBtn").addEventListener("click", function () {
-    cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.remove("hidden"); loadLeaderboard();
+    cover.classList.add("hidden"); gameView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+    leaderboardView.classList.remove("hidden"); loadLeaderboard();
   });
-  function backToCover() { cover.classList.remove("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden"); }
+  $("coverHextechLeaderboardBtn").addEventListener("click", function () {
+    cover.classList.add("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
+    hextechLeaderboardView.classList.remove("hidden"); loadHextechLeaderboard();
+  });
+  $("hextechLeaderboardBackBtn").addEventListener("click", backToCover);
+  $("hextechLeaderboardRefreshBtn").addEventListener("click", loadHextechLeaderboard);
+  function backToCover() {
+    cover.classList.remove("hidden"); gameView.classList.add("hidden"); leaderboardView.classList.add("hidden");
+    if (hextechLeaderboardView) hextechLeaderboardView.classList.add("hidden");
+  }
   $("leaderboardBackBtn").addEventListener("click", backToCover);
   const collectionBackBtn = $("collectionBackBtn");
   if (collectionBackBtn) collectionBackBtn.addEventListener("click", backToCover);
@@ -445,6 +599,8 @@
     });
   }
 
+  const pendingHextechAtLoad = readHextechPendingScores();
+  if (pendingHextechAtLoad.length) syncPendingHextechScores();
   const queuedScoresAtLoad = readPendingScoreQueue();
   if (queuedScoresAtLoad.length) {
     syncPendingScoreQueue().then(result => {
