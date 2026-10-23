@@ -163,6 +163,7 @@
       merge_count:Math.max(0,Math.floor(Number(result && result.merge_count) || 0)),
       highest_level:Math.min(9,Math.max(1,Math.floor(Number(result && result.highest_level) || 1))),
       augments:Array.isArray(result && result.augments) ? result.augments.slice(0,3) : [],
+      offered_augments:Array.isArray(result && result.offered_augments) ? result.offered_augments.slice(0,60) : [],
       created_at:new Date().toISOString()
     };
     storeHextechLocalScore(row);
@@ -231,57 +232,71 @@
       hextechLeaderboardStatus.textContent = "⚠ 云端排行榜暂不可用（" + detail + "）。当前显示的是本机记录，不代表全球排名。";
     }
   }
+  const HEXTECH_AUGMENT_CATALOG = [
+    {id:"cashBack",tier:"silver",tierName:"银色强化",name:"合成返现"},{id:"luckyFaces",tier:"silver",tierName:"银色强化",name:"欧皇基因"},{id:"steadyHands",tier:"silver",tierName:"银色强化",name:"连击热手"},{id:"speedyHands",tier:"silver",tierName:"银色强化",name:"极速投放"},{id:"mergeScholar",tier:"silver",tierName:"银色强化",name:"合成学徒"},{id:"rareWhisper",tier:"silver",tierName:"银色强化",name:"稀有耳语"},{id:"smallSteps",tier:"silver",tierName:"银色强化",name:"小步快跑"},{id:"comboRhythm",tier:"silver",tierName:"银色强化",name:"连击节拍"},{id:"streakPurse",tier:"silver",tierName:"银色强化",name:"五连红包"},{id:"firstAid",tier:"silver",tierName:"银色强化",name:"备用护身符"},
+    {id:"bigMerge",tier:"gold",tierName:"金色强化",name:"高能合成"},{id:"comboEngine",tier:"gold",tierName:"金色强化",name:"连击引擎"},{id:"eventMachine",tier:"gold",tierName:"金色强化",name:"事件加速器"},{id:"safetyNet",tier:"gold",tierName:"金色强化",name:"救场护盾"},{id:"highRoller",tier:"gold",tierName:"金色强化",name:"闪光收藏家"},{id:"veteranCraft",tier:"gold",tierName:"金色强化",name:"资深手艺"},{id:"hotStreak",tier:"gold",tierName:"金色强化",name:"三连红包"},{id:"chainDividend",tier:"gold",tierName:"金色强化",name:"连击分红"},{id:"goldenTouch",tier:"gold",tierName:"金色强化",name:"点石成金"},{id:"luckyTempo",tier:"gold",tierName:"金色强化",name:"好运节拍"},
+    {id:"smallMerge",tier:"prismatic",tierName:"棱彩强化",name:"小球大计"},{id:"prismaticLuck",tier:"prismatic",tierName:"棱彩强化",name:"棱彩欧皇"},{id:"tripleBurst",tier:"prismatic",tierName:"棱彩强化",name:"三倍爆发"},{id:"compoundInterest",tier:"prismatic",tierName:"棱彩强化",name:"复利核心"},{id:"kingmaker",tier:"prismatic",tierName:"棱彩强化",name:"高阶王权"},{id:"limitBreak",tier:"prismatic",tierName:"棱彩强化",name:"极限突破"},{id:"comboOverdrive",tier:"prismatic",tierName:"棱彩强化",name:"连击超载"},{id:"jackpotEngine",tier:"prismatic",tierName:"棱彩强化",name:"欧皇引擎"},{id:"everyThree",tier:"prismatic",tierName:"棱彩强化",name:"三步登天"},{id:"goldRush",tier:"prismatic",tierName:"棱彩强化",name:"黄金洪流"}
+  ];
   function renderHextechAverageLeaderboard(rows) {
     const list = $("hextechAverageLeaderboardList");
     if (!list) return;
     list.replaceChildren();
-    const groups = new Map();
+    const stats = new Map(HEXTECH_AUGMENT_CATALOG.map(augment => [augment.id, {...augment, selectedRuns:0, totalScore:0, bestScore:0, offeredCount:0, trackedSelections:0}]));
     (Array.isArray(rows) ? rows : []).forEach(row => {
-      const name = String(row.name || "神秘群友").trim() || "神秘群友";
-      const key = row.player_id ? "id:" + row.player_id : "name:" + name.toLocaleLowerCase();
-      if (!groups.has(key)) groups.set(key, { name, avatar:row.avatar || "", runs:0, total:0, best:0, latest:row.created_at || "" });
-      const group = groups.get(key);
-      group.runs++;
-      group.total += Math.max(0, Number(row.score) || 0);
-      group.best = Math.max(group.best, Math.max(0, Number(row.score) || 0));
-      if (row.created_at && row.created_at > group.latest) group.latest = row.created_at;
-      if (!group.avatar && row.avatar) group.avatar = row.avatar;
-      if (row.created_at && (!group.name || group.name === "神秘群友")) group.name = name;
+      const score = Math.max(0, Number(row.score) || 0);
+      const selected = new Set();
+      (Array.isArray(row.augments) ? row.augments : []).forEach(augment => {
+        if (!augment || !augment.id) return;
+        const id = String(augment.id); selected.add(id);
+        if (!stats.has(id)) stats.set(id, {id,name:augment.name || "未知海克斯",tier:augment.tier || "",tierName:augment.tierName || "海克斯强化",selectedRuns:0,totalScore:0,bestScore:0,offeredCount:0,trackedSelections:0});
+        const item = stats.get(id); item.selectedRuns++; item.totalScore += score; item.bestScore = Math.max(item.bestScore, score);
+      });
+      if (Array.isArray(row.offered_augments)) {
+        const trackedSelected = new Set();
+        row.offered_augments.forEach(augment => {
+          if (!augment || !augment.id) return;
+          const id = String(augment.id);
+          if (!stats.has(id)) stats.set(id, {id,name:augment.name || "未知海克斯",tier:augment.tier || "",tierName:augment.tierName || "海克斯强化",selectedRuns:0,totalScore:0,bestScore:0,offeredCount:0,trackedSelections:0});
+          stats.get(id).offeredCount++;
+          if (selected.has(id)) trackedSelected.add(id);
+        });
+        trackedSelected.forEach(id => stats.get(id).trackedSelections++);
+      }
     });
-    const ranked = Array.from(groups.values()).filter(player => player.runs >= 3)
-      .map(player => Object.assign(player, { average:player.total / player.runs }))
-      .sort((a,b) => b.average - a.average || b.runs - a.runs || b.best - a.best)
-      .slice(0,20);
-    if (!ranked.length) {
-      const li = document.createElement("li"); li.className = "hextech-ranking-empty";
-      li.textContent = "暂时还没有满足上榜条件的玩家。完成 3 局海克斯模式后，就能参与平均分排名！";
-      list.appendChild(li); return;
-    }
-    ranked.forEach((player,index) => {
-      const li = document.createElement("li"); li.className = "hextech-rank-row";
+    const ranked = Array.from(stats.values()).map(item => Object.assign(item, {
+      average:item.selectedRuns ? item.totalScore / item.selectedRuns : null,
+      selectionRate:item.offeredCount ? item.trackedSelections / item.offeredCount : null
+    })).sort((a,b) => {
+      if (a.average === null && b.average !== null) return 1;
+      if (a.average !== null && b.average === null) return -1;
+      return (b.average || 0) - (a.average || 0) || b.selectedRuns - a.selectedRuns || b.bestScore - a.bestScore || a.name.localeCompare(b.name, "zh-CN");
+    });
+    ranked.forEach((augment,index) => {
+      const li = document.createElement("li"); li.className = "hextech-rank-row hextech-augment-stat-row";
       const rank = document.createElement("span"); rank.className = "hextech-rank-number";
-      rank.textContent = index < 3 ? ["🥇","🥈","🥉"][index] : String(index+1);
-      const img = document.createElement("img"); img.className = "hextech-rank-avatar"; img.alt = ""; img.loading = "lazy";
-      const fallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23f4ead8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
-      img.src = player.avatar || fallback;
-      img.addEventListener("error", function(){this.onerror=null;this.src=fallback;});
+      rank.textContent = index < 3 && augment.selectedRuns > 0 ? ["🥇","🥈","🥉"][index] : String(index+1);
+      const icon = document.createElement("span"); icon.className = "hextech-augment-tier-icon tier-" + (augment.tier || "silver");
+      icon.textContent = augment.tier === "prismatic" ? "✦" : augment.tier === "gold" ? "◆" : "◇";
+      icon.setAttribute("aria-label", augment.tierName || "海克斯强化");
       const info = document.createElement("div"); info.className = "hextech-rank-info";
-      const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = player.name;
+      const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = augment.name;
       const meta = document.createElement("small"); meta.className = "hextech-rank-meta";
-      meta.textContent = "有效局数 " + player.runs + " · 个人最高 " + player.best.toLocaleString() + " 分";
+      const rate = augment.selectionRate === null ? "选择率待统计" : "选择率 " + (augment.selectionRate * 100).toFixed(1) + "%";
+      const best = augment.selectedRuns ? "最高分 " + augment.bestScore.toLocaleString() : "最高分 暂无记录";
+      meta.textContent = (augment.tierName || "海克斯强化") + " · " + rate + " · 被选择 " + augment.selectedRuns + " 局 · " + best;
       info.append(name,meta);
       const metric = document.createElement("div"); metric.className = "hextech-average-metric";
-      const average = document.createElement("strong"); average.textContent = Math.round(player.average).toLocaleString() + " 分/局";
-      const runs = document.createElement("small"); runs.textContent = "平均分";
-      metric.append(average,runs);
-      li.append(rank,img,info,metric); list.appendChild(li);
+      const average = document.createElement("strong"); average.textContent = augment.average === null ? "暂无" : Math.round(augment.average).toLocaleString() + " 分";
+      const label = document.createElement("small"); label.textContent = "选择后平均分";
+      metric.append(average,label); li.append(rank,icon,info,metric); list.appendChild(li);
     });
+    if (!ranked.length) { const li = document.createElement("li"); li.className = "hextech-ranking-empty"; li.textContent = "暂时没有海克斯统计数据，完成一局并选择强化后就会开始记录。"; list.appendChild(li); }
   }
   async function loadHextechAverageLeaderboard() {
     const status = $("hextechAverageLeaderboardStatus");
     if (!status) return;
     status.textContent = "正在统计全球平均分…";
-    const cached = (() => { try { return JSON.parse(sessionStorage.getItem("mergeHextechAverageLeaderboardCacheV1") || "null"); } catch (_) { return null; } })();
+    const cached = (() => { try { return JSON.parse(sessionStorage.getItem("mergeHextechAverageLeaderboardCacheV2") || "null"); } catch (_) { return null; } })();
     if (Array.isArray(cached)) renderHextechAverageLeaderboard(cached);
     try {
       if (!hasRemote()) throw new Error("云端数据库配置不可用。");
@@ -291,7 +306,7 @@
       const maxRows = 20000;
       for (let offset = 0; offset < maxRows; offset += pageSize) {
         const batch = await remoteRequest(
-          "merge_hextech_scores?select=player_id,name,score,created_at&order=created_at.desc&limit=" + pageSize + "&offset=" + offset
+          "merge_hextech_scores?select=player_id,name,score,created_at,augments,offered_augments&order=created_at.desc&limit=" + pageSize + "&offset=" + offset
         );
         if (!Array.isArray(batch)) throw new Error("云端返回的数据格式不正确。");
         allRows.push(...batch);
@@ -299,7 +314,7 @@
       }
       renderHextechAverageLeaderboard(allRows);
       try { sessionStorage.setItem("mergeHextechAverageLeaderboardCacheV1", JSON.stringify(allRows)); } catch (_) {}
-      status.textContent = "已统计 " + allRows.length.toLocaleString() + " 局海克斯成绩；每位玩家至少 3 局，按平均分排序。";
+      status.textContent = "已统计 " + allRows.length.toLocaleString() + " 局海克斯成绩；按每个强化被选择后的平均分排序。选择率根据已记录的强化出现次数计算，旧对局未记录出现选项，因此不计入选择率分母。";
       if (allRows.length >= maxRows) status.textContent += " 当前按最近 20,000 条成绩估算平均分。";
     } catch (error) {
       const localRows = readHextechLocalScores();
