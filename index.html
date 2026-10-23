@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>姐妹兄弟全上岸游戏库</title>
-<link rel="stylesheet" href="style.css?v=20261022-honorpopup5">
+<link rel="stylesheet" href="style.css?v=20261023-globalprofile1">
+<script src="identity.js?v=20261023-v1"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
@@ -14,7 +15,24 @@
     <p class="cover-kicker">GROUP FRIENDS GAME HUB</p>
     <h1>姐妹兄弟全上岸<br>游戏库</h1>
     <p class="cover-subtitle">快乐开黑，轻松上岸。选一款游戏开始吧！</p>
-    <div class="library-tools"><label class="sr-only" for="gameSearch">搜索游戏</label><input id="gameSearch" type="search" placeholder="🔎 搜索游戏名称或玩法…" autocomplete="off"><label class="sr-only" for="gameCategory">游戏分类</label><select id="gameCategory"><option value="all">全部游戏</option><option value="playable">可游玩</option></select><p id="gameSearchStatus" aria-live="polite">共 3 款游戏</p></div>
+    <section id="global-profile" class="global-profile" aria-label="全站游客资料">
+      <div class="global-profile-avatar">
+        <img id="siteAvatarPreview" alt="玩家头像" hidden>
+        <span id="siteAvatarFallback" aria-hidden="true">👤</span>
+      </div>
+      <div class="global-profile-fields">
+        <label for="sitePlayerName">你的全站昵称</label>
+        <input id="sitePlayerName" maxlength="40" placeholder="先设置昵称，所有游戏通用" autocomplete="nickname">
+        <div class="global-profile-row">
+          <label class="global-avatar-upload" for="siteAvatarInput">📷 上传 / 更换头像</label>
+          <input id="siteAvatarInput" type="file" accept="image/*" hidden>
+          <small>游客 ID：<code id="sitePlayerId">载入中…</code></small>
+        </div>
+        <button id="saveSiteProfileBtn" class="secondary-button global-save-button" type="button">保存全站资料</button>
+        <p id="siteProfileStatus" role="status" aria-live="polite">昵称、头像和游客 ID 将由所有游戏共用。</p>
+      </div>
+    </section>
+    <div class="library-tools"><label class="sr-only" for="gameCategory">游戏分类</label><select id="gameCategory"><option value="all">全部游戏</option><option value="playable">可游玩</option></select><p id="gameSearchStatus" aria-live="polite">共 4 款游戏</p></div>
     <div class="game-library-list">
       <button id="openMergeGameBtn" class="library-game-card" data-category="playable" type="button">
         <span class="library-game-icon">🫧</span>
@@ -39,6 +57,15 @@
         <span class="library-game-copy">
           <strong>群友消消乐</strong>
           <small>用九张真实群友头像消除闯关！</small>
+          <em>立即游玩 →</em>
+        </span>
+        <span class="library-game-arrow">›</span>
+      </a>
+      <a class="library-game-card" data-category="playable" href="catch.html?v=20261023-v1" style="text-decoration:none;color:inherit">
+        <span class="library-game-icon">🧺</span>
+        <span class="library-game-copy">
+          <strong>接群友</strong>
+          <small>选择心仪群友，接住不断加速的头像，冲击全球高分！</small>
           <em>立即游玩 →</em>
         </span>
         <span class="library-game-arrow">›</span>
@@ -183,9 +210,10 @@
 <script defer src="game.js?v=20261022-level9continue1"></script>
 <script defer src="lobby.js?v=20261022-admodal4"></script>
 <script defer src="feedback.js?v=20261022-feedback1"></script>
+<script defer src="site-profile.js?v=20261023-v1"></script>
 <link rel="stylesheet" href="feedback.css?v=20261022-feedback1">
 <script>
-(function(){const q=document.getElementById("gameSearch"),cat=document.getElementById("gameCategory"),status=document.getElementById("gameSearchStatus"),cards=Array.from(document.querySelectorAll(".game-library-list .library-game-card"));function filter(){const term=q.value.trim().toLocaleLowerCase();let count=0;cards.forEach(card=>{const matchText=card.textContent.toLocaleLowerCase().includes(term),matchCat=cat.value==="all"||card.dataset.category===cat.value,show=matchText&&matchCat;card.hidden=!show;if(show)count++});status.textContent=count?"找到 "+count+" 款游戏":"没有找到匹配的游戏"}q.addEventListener("input",filter);cat.addEventListener("change",filter)})();
+(function(){const cat=document.getElementById("gameCategory"),status=document.getElementById("gameSearchStatus"),cards=Array.from(document.querySelectorAll(".game-library-list .library-game-card"));function filter(){let count=0;cards.forEach(card=>{const show=cat.value==="all"||card.dataset.category===cat.value;card.hidden=!show;if(show)count++});status.textContent="共 "+count+" 款游戏"}cat.addEventListener("change",filter);filter()})();
 </script>
 </body>
 </html>
