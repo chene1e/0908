@@ -187,6 +187,25 @@ function queueUpload(row) {
   if (!pendingUploads.some(item => item.round_id === row.round_id)) pendingUploads.push(row);
   persistPendingUploads();
 }
+async function recoverLocalCatchScores() {
+  const cached = localRows().filter(row => row && row.round_id && row.player_id).slice(0, 25);
+  if (hasCloud() && cached.length) {
+    try {
+      const ids = Array.from(new Set(cached.map(row => row.round_id))).filter(id => /^[0-9a-f-]{36}$/i.test(id));
+      if (ids.length) {
+        const existing = await api("catch_scores?select=round_id&round_id=in.(" + ids.join(",") + ")");
+        const known = new Set((Array.isArray(existing) ? existing : []).map(row => row.round_id));
+        cached.filter(row => !known.has(row.round_id)).forEach(queueUpload);
+      }
+    } catch (_) {
+      // If the cloud lookup fails, keep the old local cache untouched and only retry queued rows.
+    }
+  }
+  if (hasCloud() && pendingUploads.length) {
+    $("coverStatus").textContent = "检测到 " + pendingUploads.length + " 局待确认成绩，正在自动核对并补传…";
+    await saveRun(pendingUploads[0]);
+  }
+}
 function storeLocal(row) { const rows = localRows(); rows.unshift(row); try { localStorage.setItem("catchFriendsScoresV1", JSON.stringify(rows.slice(0, 25))); } catch (_) {} }
 function finish(reason) {
   if (!running) return;
@@ -344,10 +363,7 @@ function init() {
   const p=getProfile();
   $("coverStatus").textContent=p.name?"已使用全站游客身份，成绩将关联同一个玩家 ID。":"先在游戏库首页设置昵称，所有游戏会共用这份资料。";
   $("targetHint").textContent="接住 "+AVATARS[selected-1].name+" 可得 15 分；金色奖励头像可得 30 分。";
-  if (pendingUploads.length && hasCloud()) {
-    $("coverStatus").textContent = "检测到 " + pendingUploads.length + " 局尚未确认上传的成绩，正在自动补传…";
-    saveRun(pendingUploads[0]);
-  }
+  recoverLocalCatchScores();
 }
 init();
 })();
