@@ -2,13 +2,14 @@
 "use strict";
 const $ = id => document.getElementById(id);
 const config = window.LEADERBOARD_CONFIG || {};
+const PENDING_KEY = "catchFriendsPendingUploadsV1";
 const W = 480, H = 640, BASKET_Y = 570, BASKET_W = 112;
 const AVATARS = Array.from({ length: 9 }, (_, i) => ({ level: i + 1, name: "群友 " + (i + 1), src: "assets/level" + (i + 1) + ".png" }));
 const images = AVATARS.map(item => { const img = new Image(); img.src = item.src; return img; });
 const canvas = $("playfield"), ctx = canvas.getContext("2d");
 let selected = 1, screen = "cover", running = false, raf = 0, lastFrame = 0, startAt = 0, elapsed = 0, spawnClock = 0;
 let basketX = W / 2, objects = [], floaters = [], score = 0, lives = 3, caught = 0, missed = 0, combo = 0, maxCombo = 0;
-let roundId = "", finishReason = "lives", finalRow = null, uploadInProgress = false, pendingUploads = [];
+let roundId = "", finishReason = "lives", finalRow = null, uploadInProgress = false, pendingUploads = loadPendingUploads();
 function uid() { return window.GameIdentity ? window.GameIdentity.newId() : (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)); }
 function getProfile() {
   if (window.GameIdentity) return window.GameIdentity.getProfile();
@@ -23,15 +24,43 @@ function saveProfile(patch) {
 function hasCloud() { return !!(config.supabaseUrl && config.supabaseAnonKey); }
 async function api(path, options) {
   const opts = options || {};
-  const headers = Object.assign({ apikey: config.supabaseAnonKey, "Content-Type": "application/json" }, opts.headers || {});
-  const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({}, opts, { headers }));
-  if (!response.ok) {
-    let detail = ""; try { detail = await response.text(); } catch (_) {}
-    throw new Error("HTTP " + response.status + (detail ? " · " + detail.slice(0, 120) : ""));
+  const method = String(opts.method || "GET").toUpperCase();
+  const maxAttempts = method === "GET" ? 3 : 1;
+  let lastError = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const headers = Object.assign({ apikey: config.supabaseAnonKey, "Content-Type": "application/json" }, opts.headers || {});
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
+    try {
+      const requestOptions = Object.assign({}, opts, { headers });
+      if (!opts.signal && controller) requestOptions.signal = controller.signal;
+      const response = await fetch(config.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/" + path, requestOptions);
+      if (!response.ok) {
+        let detail = "";
+        try { detail = await response.text(); } catch (_) {}
+        const error = new Error("HTTP " + response.status + (detail ? " · " + detail.slice(0, 160) : ""));
+        error.status = response.status;
+        throw error;
+      }
+      if (response.status === 204) return [];
+      const body = await response.text();
+      return body ? JSON.parse(body) : [];
+    } catch (error) {
+      lastError = error;
+      const retryable = method === "GET" && attempt < maxAttempts - 1
+        && (!error.status || error.status >= 500);
+      if (!retryable) {
+        if (error && error.name === "AbortError") throw new Error("云端请求超时（15 秒），请检查网络后重试。");
+        throw error;
+      }
+      await new Promise(resolve => setTimeout(resolve, 350 * (attempt + 1)));
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
   }
-  if (response.status === 204) return [];
-  const body = await response.text(); return body ? JSON.parse(body) : [];
+  throw lastError || new Error("云端请求失败，请稍后重试。");
 }
+
 function bestKey(playerId) { return "catchFriendsBestV1:" + playerId; }
 function readBest(playerId) { try { return Math.max(0, Number(localStorage.getItem(bestKey(playerId))) || 0); } catch (_) { return 0; } }
 function profileUI() {
@@ -144,6 +173,20 @@ function roundTime(ms) { return (Math.max(0, ms) / 1000).toFixed(1) + " 秒"; }
 function formatClock(seconds) { const total = Math.floor(Math.max(0, seconds)); return Math.floor(total / 60) + ":" + String(total % 60).padStart(2, "0"); }
 function formatDate(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? "时间未知" : date.toLocaleString("zh-CN", { year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit" }); }
 function localRows() { try { const value = JSON.parse(localStorage.getItem("catchFriendsScoresV1") || "[]"); return Array.isArray(value) ? value : []; } catch (_) { return []; } }
+
+function loadPendingUploads() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+    return Array.isArray(value) ? value.filter(row => row && row.round_id && row.player_id) : [];
+  } catch (_) { return []; }
+}
+function persistPendingUploads() {
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(pendingUploads.slice(-100))); } catch (_) {}
+}
+function queueUpload(row) {
+  if (!pendingUploads.some(item => item.round_id === row.round_id)) pendingUploads.push(row);
+  persistPendingUploads();
+}
 function storeLocal(row) { const rows = localRows(); rows.unshift(row); try { localStorage.setItem("catchFriendsScoresV1", JSON.stringify(rows.slice(0, 25))); } catch (_) {} }
 function finish(reason) {
   if (!running) return;
@@ -161,7 +204,7 @@ function finish(reason) {
     target_level: selected, score, caught_count: caught, missed_count: missed, max_combo: maxCombo,
     survival_seconds: Number(duration.toFixed(2)), finish_reason: reason, created_at: new Date().toISOString()
   };
-  storeLocal(finalRow); pendingUploads.push(finalRow);
+  storeLocal(finalRow); queueUpload(finalRow);
   $("resultTitle").textContent = isRecord ? "🏆 刷新个人纪录！" : "❤️ 生命耗尽";
   $("finalScore").textContent = score.toLocaleString(); $("finalCaught").textContent = String(caught);
   $("finalMissed").textContent = String(missed); $("finalCombo").textContent = String(maxCombo); $("finalDuration").textContent = roundTime(duration * 1000);
@@ -177,8 +220,10 @@ async function saveRun(requestedRow) {
   $("retryUploadButton").classList.add("hidden");
   if (!hasCloud()) {
     if (finalRow) {
-      $("uploadStatus").textContent = "云端排行榜配置不可用；已保留本机记录。";
+      $("uploadStatus").textContent = "云端排行榜配置不可用；已保留本机记录，联网后可以重试。";
       $("retryUploadButton").classList.remove("hidden");
+    } else {
+      $("coverStatus").textContent = "有 " + pendingUploads.length + " 局成绩等待上传；当前无法连接云端。";
     }
     uploadInProgress = false;
     return;
@@ -196,13 +241,19 @@ async function saveRun(requestedRow) {
       const rows = await api("catch_scores?select=round_id&round_id=eq." + encodeURIComponent(row.round_id) + "&limit=1");
       uploaded = Array.isArray(rows) && rows.some(item => item.round_id === row.round_id);
     } catch (_) {}
-    if (!uploaded && finalRow) {
-      $("uploadStatus").textContent = "云端暂时无法确认成绩；本机已保留 " + pendingUploads.length + " 局待上传记录。请重试。";
-      $("retryUploadButton").classList.remove("hidden");
+    if (!uploaded) {
+      const detail = error && error.message ? error.message : "网络或数据库请求失败";
+      if (finalRow) {
+        $("uploadStatus").textContent = "上传未确认（" + detail.slice(0, 110) + "）；本机已保留 " + pendingUploads.length + " 局待上传记录。请重试。";
+        $("retryUploadButton").classList.remove("hidden");
+      } else {
+        $("coverStatus").textContent = "检测到待上传成绩，但自动补传失败；记录仍保存在本机。请检查网络后重新打开游戏。";
+      }
     }
   }
   if (uploaded) {
     pendingUploads = pendingUploads.filter(item => item.round_id !== row.round_id);
+    persistPendingUploads();
     if (finalRow && finalRow.round_id === row.round_id) {
       $("uploadStatus").textContent = "✓ 已上传全球排行榜 · 本局成绩已记录";
       $("retryUploadButton").classList.add("hidden");
@@ -293,6 +344,10 @@ function init() {
   const p=getProfile();
   $("coverStatus").textContent=p.name?"已使用全站游客身份，成绩将关联同一个玩家 ID。":"先在游戏库首页设置昵称，所有游戏会共用这份资料。";
   $("targetHint").textContent="接住 "+AVATARS[selected-1].name+" 可得 15 分；金色奖励头像可得 30 分。";
+  if (pendingUploads.length && hasCloud()) {
+    $("coverStatus").textContent = "检测到 " + pendingUploads.length + " 局尚未确认上传的成绩，正在自动补传…";
+    saveRun(pendingUploads[0]);
+  }
 }
 init();
 })();
