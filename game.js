@@ -212,6 +212,7 @@ let roundMerges = 0;
 let roundRare = 0;
 let hextechModeActive = false, hextechOwned = [], hextechOffersTaken = 0, hextechOfferedAugments = [];
 let hextechMilestonesReached = new Set(), hextechPendingMilestones = [], hextechPendingWin = false;
+let hextechOfferPausedAt = 0;
 let hextechClearUsed = new Set();
 let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus = 0;
 let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
@@ -464,6 +465,11 @@ function applyHextechAugment(a) {
 }
 function chooseHextechAugment(a) {
     if (!hextechModeActive || !a || hextechOffersTaken >= 3 || hextechOwned.some(item => item.id === a.id)) return;
+    // 海克斯选择期间暂停连击计时，确认后把暂停时长补回最后合成时间。
+    if (hextechOfferPausedAt) {
+        if (lastMergeAt) lastMergeAt += Date.now() - hextechOfferPausedAt;
+        hextechOfferPausedAt = 0;
+    }
     hextechOwned.push(a); applyHextechAugment(a); hextechOffersTaken++;
     if (hextechOverlay) hextechOverlay.classList.add("hidden");
     renderHextechStatus(); showToast("⚡ 海克斯生效：" + a.name);
@@ -477,6 +483,7 @@ function offerHextechIfDue() {
     const milestoneLevel = hextechPendingMilestones.shift();
     if (!hextechOverlay || !hextechChoices) return false;
     paused = true; gameOverTimer = 0; if (runner) Runner.stop(runner);
+    hextechOfferPausedAt = Date.now();
     hextechChoices.replaceChildren();
     const tierForOffer = ["silver", "gold", "prismatic"][Math.floor(Math.random() * 3)];
     const tierLabel = {silver:"银色",gold:"金色",prismatic:"棱彩"}[tierForOffer];
@@ -499,6 +506,13 @@ function offerHextechIfDue() {
         card.append(tier, name, description, note);
         card.setAttribute("aria-label", augment.name + "：" + augment.description + "，点击选择");
     };
+    let selectedAugment = null;
+    let confirmButton = null;
+    const updateConfirmButton = () => {
+        if (!confirmButton) return;
+        confirmButton.disabled = !selectedAugment;
+        confirmButton.textContent = selectedAugment ? "确认选择：" + selectedAugment.name : "请先选择一枚海克斯";
+    };
     offered.forEach((initialAugment, index) => {
         let currentAugment = initialAugment;
         recordOfferedAugment(currentAugment);
@@ -506,7 +520,16 @@ function offerHextechIfDue() {
         const wrap = document.createElement("div"); wrap.className = "hextech-choice-wrap";
         const card = document.createElement("button"); card.type = "button"; card.className = "hextech-card tier-" + initialAugment.tier;
         renderChoice(card, currentAugment);
-        card.addEventListener("click", () => chooseHextechAugment(currentAugment));
+        card.setAttribute("aria-pressed", "false");
+        card.addEventListener("click", () => {
+            selectedAugment = currentAugment;
+            hextechChoices.querySelectorAll(".hextech-card").forEach(choice => {
+                const isSelected = choice === card;
+                choice.classList.toggle("selected", isSelected);
+                choice.setAttribute("aria-pressed", String(isSelected));
+            });
+            updateConfirmButton();
+        });
         const refresh = document.createElement("button"); refresh.type = "button"; refresh.className = "hextech-refresh-btn";
         refresh.textContent = "↻ 刷新（剩余 1 次）";
         refresh.setAttribute("aria-label", "刷新第 " + (index + 1) + " 个海克斯选项");
@@ -522,12 +545,18 @@ function offerHextechIfDue() {
                 refresh.textContent = "暂无可刷新选项";
                 return;
             }
+            if (selectedAugment && selectedAugment.id === currentAugment.id) {
+                selectedAugment = null;
+            }
             currentAugment = candidates[Math.floor(Math.random() * candidates.length)];
             offered[index] = currentAugment;
             seenInThisOffer.add(currentAugment.id);
             recordOfferedAugment(currentAugment);
             refreshed = true;
             renderChoice(card, currentAugment);
+            card.classList.remove("selected");
+            card.setAttribute("aria-pressed", "false");
+            updateConfirmButton();
             refresh.disabled = true;
             refresh.textContent = "✓ 已刷新";
             refresh.setAttribute("aria-label", "此海克斯选项已使用刷新机会");
@@ -535,6 +564,19 @@ function offerHextechIfDue() {
         wrap.append(card, refresh);
         hextechChoices.appendChild(wrap);
     });
+    const confirmRow = document.createElement("div");
+    confirmRow.className = "hextech-confirm-row";
+    confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = "hextech-confirm-btn";
+    confirmButton.disabled = true;
+    confirmButton.textContent = "请先选择一枚海克斯";
+    confirmButton.addEventListener("click", () => {
+        if (!selectedAugment || confirmButton.disabled) return;
+        chooseHextechAugment(selectedAugment);
+    });
+    confirmRow.appendChild(confirmButton);
+    hextechChoices.appendChild(confirmRow);
     hextechOverlay.classList.remove("hidden");
     const first = hextechChoices.querySelector("button"); if (first) first.focus();
     return true;
@@ -582,7 +624,7 @@ function submitHextechRunScore() {
 }
 function resetHextechRun() {
     hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0; hextechOfferedAugments = []; hextechClearUsed = new Set();
-    hextechMilestonesReached = new Set(); hextechPendingMilestones = []; hextechPendingWin = false;
+    hextechMilestonesReached = new Set(); hextechPendingMilestones = []; hextechPendingWin = false; hextechOfferPausedAt = 0;
     hextechScoreMultiplier = 1; hextechBonusPerMerge = 0; hextechRareChanceBonus = 0; hextechRareScoreMultiplier = 3;
     hextechComboWindowMs = 4500; hextechComboThreshold = 3; hextechComboMultiplier = 1.5;
     hextechDropCooldownMs = 250; hextechDropRecoveryMs = 450; hextechEventFrequencyMultiplier = 1;
