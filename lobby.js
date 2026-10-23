@@ -290,7 +290,7 @@
       const maxRows = 20000;
       for (let offset = 0; offset < maxRows; offset += pageSize) {
         const batch = await remoteRequest(
-          "merge_hextech_scores?select=player_id,name,avatar,score,created_at&order=created_at.asc&limit=" + pageSize + "&offset=" + offset
+          "merge_hextech_scores?select=player_id,name,score,created_at&order=created_at.desc&limit=" + pageSize + "&offset=" + offset
         );
         if (!Array.isArray(batch)) throw new Error("云端返回的数据格式不正确。");
         allRows.push(...batch);
@@ -299,7 +299,7 @@
       renderHextechAverageLeaderboard(allRows);
       try { sessionStorage.setItem("mergeHextechAverageLeaderboardCacheV1", JSON.stringify(allRows)); } catch (_) {}
       status.textContent = "已统计 " + allRows.length.toLocaleString() + " 局海克斯成绩；每位玩家至少 3 局，按平均分排序。";
-      if (allRows.length >= maxRows) status.textContent += " 当前最多读取最近/最早排序中的 20,000 条记录。";
+      if (allRows.length >= maxRows) status.textContent += " 当前按最近 20,000 条成绩估算平均分。";
     } catch (error) {
       const localRows = readHextechLocalScores();
       renderHextechAverageLeaderboard(localRows);
