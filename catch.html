@@ -45,6 +45,7 @@
       <div class="hud-card"><span>剩余时间</span><strong><span id="timeLeft">60</span><small> 秒</small></strong></div>
       <div class="hud-card lives-card"><span>剩余生命</span><strong id="lives" aria-label="剩余三滴血">♥ ♥ ♥</strong></div>
     </div>
+    <div class="best-strip"><span>个人最佳</span><strong id="bestScore">0</strong><span id="bestBadge" aria-live="polite"></span></div>
     <div class="target-strip"><img id="targetAvatar" alt=""><span>本局目标：<strong id="targetName">群友 1</strong></span><span id="comboLabel">连击 ×0</span></div>
     <div class="playfield-wrap">
       <canvas id="playfield" width="480" height="640" aria-label="接群友游戏区域"></canvas>
@@ -58,7 +59,7 @@
             <div><small>接住头像</small><strong id="finalCaught">0</strong></div>
             <div><small>漏接头像</small><strong id="finalMissed">0</strong></div>
             <div><small>最高连击</small><strong id="finalCombo">0</strong></div>
-            <div><small>游玩时长</small><strong id="finalDuration">0 秒</strong></div>
+            <div><small>游玩时长</small><strong id="finalDuration">0 秒</strong></div><div><small>个人最佳</small><strong id="finalBest">0</strong></div>
           </div>
           <p id="finishTimestamp" class="finish-timestamp"></p>
           <p id="uploadStatus" class="upload-status" role="status" aria-live="polite">正在上传本局成绩…</p>
