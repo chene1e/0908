@@ -596,10 +596,12 @@
   const classicModeBtn = $("classicModeBtn");
   const hextechModeBtn = $("hextechModeBtn");
   const mergeModeHint = $("mergeModeHint");
+  const hextechCoverTeaser = document.querySelector(".hextech-cover-teaser");
   window.mergeGameMode = "classic";
   function selectMergeMode(mode) {
     window.mergeGameMode = mode === "hextech" ? "hextech" : "classic";
     const isHextech = window.mergeGameMode === "hextech";
+    if (hextechCoverTeaser) hextechCoverTeaser.classList.toggle("hidden", !isHextech);
     if (classicModeBtn) {
       classicModeBtn.classList.toggle("active", !isHextech);
       classicModeBtn.setAttribute("aria-pressed", String(!isHextech));
