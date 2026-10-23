@@ -359,10 +359,13 @@ function renderHextechStatus() {
     if (!hextechModeActive) return;
     if (hextechProgressTitle) hextechProgressTitle.textContent = "⚡ 海克斯模式 · 已选 " + hextechOffersTaken + "/3";
     if (hextechProgressHint) {
-        if (hextechOffersTaken >= HEXTECH_MILESTONES.length) hextechProgressHint.textContent = "本局强化已集齐，继续合成冲击高分。";
-        else {
-            const left = Math.max(0, HEXTECH_MILESTONES[hextechOffersTaken] - roundMerges);
-            hextechProgressHint.textContent = left === 0 ? "海克斯强化已就绪！" : "再合成 " + left + " 次，即可选择第 " + (hextechOffersTaken + 1) + " 枚强化。";
+        if (hextechOffersTaken >= HEXTECH_MILESTONES.length) {
+            hextechProgressHint.textContent = "本局 3 次海克斯选择已完成，继续合成冲击高分。";
+        } else {
+            const nextLevel = HEXTECH_MILESTONES.find(level => !hextechMilestonesReached.has(level));
+            hextechProgressHint.textContent = nextLevel
+                ? "首次合成出 Level " + nextLevel + " 群友时，触发第 " + (hextechOffersTaken + 1) + " 次海克斯选择；品质随机，也可能重复。"
+                : "已触发全部等级节点，完成当前选择即可继续。";
         }
     }
     if (hextechAbilityButtons) {
