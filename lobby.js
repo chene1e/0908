@@ -28,7 +28,7 @@
     const saved = readProfile();
     // 未重新选择头像时保留之前保存的头像，避免被空字符串覆盖。
     const avatar = avatarData || saved.avatar || "";
-    try { localStorage.setItem("bigGroupProfile", JSON.stringify({ name, avatar })); } catch (_) {
+    try { const playerId = saved.playerId || (window.GameIdentity ? window.GameIdentity.getProfile().playerId : ""); localStorage.setItem("bigGroupProfile", JSON.stringify(Object.assign({}, saved, { playerId, name, avatar }))); } catch (_) {
       profileHint.textContent = "资料保存失败，浏览器存储空间可能不足，请换一张更小的头像。";
       return false;
     }
@@ -38,7 +38,7 @@
   }
   function getProfile() {
     const saved = readProfile();
-    return { name: nameInput.value.trim() || saved.name || "神秘群友", avatar: avatarData || saved.avatar || "" };
+    const shared = window.GameIdentity ? window.GameIdentity.getProfile() : saved; return { playerId: shared.playerId || saved.playerId || "", name: nameInput.value.trim() || saved.name || "神秘群友", avatar: avatarData || saved.avatar || "" };
   }
   function hasRemote() { return !!(config.supabaseUrl && config.supabaseAnonKey); }
   function localScores() {
@@ -180,7 +180,7 @@
       $("submitScoreHint").textContent = "请先返回封面设置群昵称，再提交成绩。";
       return;
     }
-    const row = { name: profile.name, avatar: profile.avatar, score: currentScore, elapsed_ms: currentRoundWon ? currentElapsedMs : null, created_at: new Date().toISOString() };
+    const row = { player_id: profile.playerId || null, name: profile.name, avatar: profile.avatar, score: currentScore, elapsed_ms: currentRoundWon ? currentElapsedMs : null, created_at: new Date().toISOString() };
     this.disabled = true; this.textContent = "提交中…";
     storeLocalScore(row);
     try {
