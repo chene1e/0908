@@ -368,7 +368,7 @@ function chooseHextechAugment(a) {
 function offerHextechIfDue() {
     if (!hextechModeActive || !started || gameOver || hextechOffersTaken >= 3 || roundMerges < HEXTECH_MILESTONES[hextechOffersTaken]) return false;
     if (!hextechOverlay || !hextechChoices) return false;
-    paused = true; if (runner) Runner.stop(runner);
+    paused = true; gameOverTimer = 0; if (runner) Runner.stop(runner);
     hextechChoices.replaceChildren();
     if (hextechOfferHint) hextechOfferHint.textContent = "第 " + (hextechOffersTaken + 1) + " 次强化 · 已合成 " + roundMerges + " 次。三选一，效果持续到本局结束。";
     const pool = HEXTECH_AUGMENTS.filter(a => !hextechOwned.some(item => item.id === a.id));
