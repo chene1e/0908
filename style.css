@@ -1067,3 +1067,13 @@ button {
 .hextech-average-metric strong{color:#805819;font-size:15px;font-weight:900;white-space:nowrap}
 .hextech-average-metric small{color:#8a7e6b;font-size:10px;white-space:nowrap}
 @media(max-width:400px){.hextech-cover-teaser{gap:7px}.hextech-average-link{padding:5px 7px;font-size:9px}}
+
+
+/* 三榜统一切换：三个入口始终位于排行榜窗口顶部。 */
+.leaderboard-tabs-three { gap: 6px; }
+.leaderboard-tabs-three .leaderboard-tab { padding: 10px 5px; font-size: 12px; line-height: 1.35; }
+#hextechLeaderboardContent .hextech-board-intro { margin-top: 14px; }
+@media(max-width:420px) {
+  .leaderboard-tabs-three { gap: 4px; }
+  .leaderboard-tabs-three .leaderboard-tab { padding: 9px 3px; font-size: 10px; overflow-wrap: anywhere; }
+}
