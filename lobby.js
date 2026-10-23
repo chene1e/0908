@@ -197,7 +197,7 @@
       const info = document.createElement("div"); info.className = "hextech-rank-info";
       const name = document.createElement("strong"); name.className = "hextech-rank-name"; name.textContent = row.name || "神秘群友";
       const meta = document.createElement("small"); meta.className = "hextech-rank-meta";
-      const effect = document.createElement("small"); effect.className = "hextech-augment-description"; effect.textContent = augment.description || "强化效果说明暂缺";
+      const effect = document.createElement("small"); effect.className = "hextech-augment-description"; const rowAugments = Array.isArray(row.augments) ? row.augments : []; effect.textContent = rowAugments.map(item => item && (item.description || item.name || item.id)).filter(Boolean).join(" · ") || "强化效果说明暂缺";
       const when = row.created_at ? new Date(row.created_at).toLocaleString() : "本机记录";
       meta.textContent = "最高等级 Lv." + Number(row.highest_level || 1) + " · 合成 " + Number(row.merge_count || 0) + " 次 · " + when;
       info.append(name,effect,meta);
