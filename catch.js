@@ -283,7 +283,7 @@ async function loadRanking() {
     img.onerror=function(){this.onerror=null;this.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='#34405f'/><text x='32' y='43' font-size='34' text-anchor='middle'>👤</text></svg>")};
     const who=document.createElement("div");who.className="rank-player";
     const name=document.createElement("strong");name.textContent=row.name||"神秘群友";
-    const meta=document.createElement("small");meta.textContent="游玩："+formatDate(row.created_at)+" · 存活 "+roundTime(Number(row.survival_seconds)*1000)+" · 接住 "+Number(row.caught_count||0)+" 个";
+    const meta=document.createElement("small");meta.textContent="目标：群友 "+Number(row.target_level||1)+" · 游玩："+formatDate(row.created_at)+" · 存活 "+roundTime(Number(row.survival_seconds)*1000)+" · 接住 "+Number(row.caught_count||0)+" 个";
     who.append(name,meta);
     const metric=document.createElement("span");metric.className="rank-metric";metric.textContent=Number(row.score||0).toLocaleString()+" 分";
     li.append(rank,img,who,metric);list.append(li);
