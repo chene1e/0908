@@ -119,7 +119,11 @@ const hextechRunStatus = document.getElementById("hextechRunStatus");
 const hextechProgressTitle = document.getElementById("hextechProgressTitle");
 const hextechProgressHint = document.getElementById("hextechProgressHint");
 const hextechOwnedList = document.getElementById("hextechOwnedList");
+const hextechOwnedInfo = document.getElementById("hextechOwnedInfo");
+const hextechAugmentCount = document.getElementById("hextechAugmentCount");
+const hextechScoreStatus = document.getElementById("hextechScoreStatus");
 const scoreSubmitArea = document.getElementById("scoreSubmitArea");
+if (hextechAugmentCount) hextechAugmentCount.textContent = String(HEXTECH_AUGMENTS.length);
 
 
 // =============================================
@@ -189,6 +193,7 @@ let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus
 let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
 let hextechDropCooldownMs = 250, hextechDropRecoveryMs = 450, hextechEventFrequencyMultiplier = 1;
 let hextechShieldCharges = 0, hextechSmallMergeMultiplier = 1, hextechTripleMergesRemaining = 0, hextechEveryFiveMergesBonus = 0;
+let hextechScoreSubmitted = false;
 const PROGRESS_KEY = "bigGroupProgressV1";
 const DAILY_KEY = "bigGroupDailyV1";
 const LEVEL_NAMES = ["初来乍到","活跃群友","气氛担当","梗王候选","群聊明星","资深群友","传奇群友","群聊传说","合成之神"];
@@ -337,7 +342,32 @@ function renderHextechStatus() {
     }
     if (hextechOwnedList) {
         hextechOwnedList.replaceChildren();
-        hextechOwned.forEach(a => { const chip = document.createElement("span"); chip.className = "hextech-owned-chip"; chip.textContent = a.name; hextechOwnedList.appendChild(chip); });
+        hextechOwned.forEach(a => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "hextech-owned-chip";
+            chip.textContent = a.name;
+            chip.title = a.description;
+            chip.dataset.tooltip = a.description;
+            chip.setAttribute("aria-expanded", String(Boolean(hextechOwnedInfo && !hextechOwnedInfo.classList.contains("hidden") && hextechOwnedInfo.dataset.augmentId === a.id)));
+            chip.addEventListener("click", () => {
+                if (!hextechOwnedInfo) return;
+                const alreadyOpen = !hextechOwnedInfo.classList.contains("hidden") && hextechOwnedInfo.dataset.augmentId === a.id;
+                if (alreadyOpen) {
+                    hextechOwnedInfo.classList.add("hidden");
+                    hextechOwnedInfo.textContent = "";
+                    delete hextechOwnedInfo.dataset.augmentId;
+                } else {
+                    hextechOwnedInfo.textContent = a.tierName + " · " + a.name + "：" + a.description;
+                    hextechOwnedInfo.dataset.augmentId = a.id;
+                    hextechOwnedInfo.classList.remove("hidden");
+                }
+                hextechOwnedList.querySelectorAll("button.hextech-owned-chip").forEach(button => {
+                    button.setAttribute("aria-expanded", String(button === chip && !alreadyOpen));
+                });
+            });
+            hextechOwnedList.appendChild(chip);
+        });
     }
 }
 function applyHextechAugment(a) {
@@ -385,6 +415,46 @@ function offerHextechIfDue() {
     const first = hextechChoices.querySelector("button"); if (first) first.focus();
     return true;
 }
+
+function getHextechHighestLevel() {
+    if (!engine) return 1;
+    return Composite.allBodies(engine.world)
+        .filter(body => body.label === "photoBall")
+        .reduce((highest, body) => Math.max(highest, Number(body.level) || 1), 1);
+}
+function submitHextechRunScore() {
+    if (!hextechModeActive || hextechScoreSubmitted) return;
+    hextechScoreSubmitted = true;
+    if (hextechScoreStatus) {
+        hextechScoreStatus.classList.remove("hidden");
+        hextechScoreStatus.textContent = "正在保存本局海克斯成绩…";
+    }
+    const payload = {
+        score,
+        merge_count: roundMerges,
+        highest_level: getHextechHighestLevel(),
+        augments: hextechOwned.map(a => ({
+            id:a.id, tier:a.tier, tierName:a.tierName,
+            name:a.name, description:a.description
+        }))
+    };
+    if (typeof window.submitHextechScore !== "function") {
+        if (hextechScoreStatus) hextechScoreStatus.textContent = "本局已结束，但成绩上传模块暂不可用；请刷新后再试。";
+        return;
+    }
+    Promise.resolve(window.submitHextechScore(payload)).then(result => {
+        if (!hextechScoreStatus) return;
+        if (result && result.ok) {
+            hextechScoreStatus.textContent = "✓ 已保存并同步到海克斯全球排行榜！";
+        } else if (result && result.localSaved) {
+            hextechScoreStatus.textContent = "✓ 成绩已保存在本机；云端暂未确认，将在下次打开海克斯全球榜时自动补传。";
+        } else {
+            hextechScoreStatus.textContent = "成绩未能保存：" + String(result && result.error && result.error.message || "请确认已设置全站昵称后重试。");
+        }
+    }).catch(error => {
+        if (hextechScoreStatus) hextechScoreStatus.textContent = "云端暂不可用，成绩提交失败：" + String(error && error.message || "请稍后再试。");
+    });
+}
 function resetHextechRun() {
     hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0;
     hextechScoreMultiplier = 1; hextechBonusPerMerge = 0; hextechRareChanceBonus = 0; hextechRareScoreMultiplier = 3;
@@ -393,6 +463,16 @@ function resetHextechRun() {
     hextechShieldCharges = 0; hextechSmallMergeMultiplier = 1; hextechTripleMergesRemaining = 0; hextechEveryFiveMergesBonus = 0;
     try { bestScore = Number(localStorage.getItem(hextechModeActive ? "mergeHexBestScore" : "mergeBestScore")) || 0; } catch (_) { bestScore = 0; }
     bestScoreElement.textContent = bestScore;
+    hextechScoreSubmitted = false;
+    if (hextechScoreStatus) {
+        hextechScoreStatus.classList.add("hidden");
+        hextechScoreStatus.textContent = "";
+    }
+    if (hextechOwnedInfo) {
+        hextechOwnedInfo.classList.add("hidden");
+        hextechOwnedInfo.textContent = "";
+        delete hextechOwnedInfo.dataset.augmentId;
+    }
     if (scoreSubmitArea) scoreSubmitArea.classList.toggle("hidden", hextechModeActive);
     if (hextechOverlay) hextechOverlay.classList.add("hidden");
     renderHextechStatus();
@@ -1641,6 +1721,7 @@ function endGame() {
 
     if (!hextechModeActive && window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
     if (hextechModeActive && scoreSubmitArea) scoreSubmitArea.classList.add("hidden");
+    if (hextechModeActive) submitHextechRunScore();
     messageRestart.textContent = "再玩一次";
     showMessage(
         hextechModeActive ? "⚡ 海克斯挑战结束" : "游戏结束",
@@ -1668,6 +1749,7 @@ function stopGameManually() {
 
     if (!hextechModeActive && window.finishAndOfferScore) window.finishAndOfferScore(score, level9ElapsedMs, level9Celebrated);
     if (hextechModeActive && scoreSubmitArea) scoreSubmitArea.classList.add("hidden");
+    if (hextechModeActive) submitHextechRunScore();
     messageRestart.textContent = "再玩一次";
     showMessage(
         hextechModeActive ? "⚡ 海克斯挑战结束" : "本局已结束",
