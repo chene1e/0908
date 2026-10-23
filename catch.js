@@ -144,7 +144,7 @@ function missObject() {
 function roundTime(ms) { return (Math.max(0, ms) / 1000).toFixed(1) + " 秒"; }
 function formatDate(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? "时间未知" : date.toLocaleString("zh-CN", { year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit" }); }
 function localRows() { try { const value = JSON.parse(localStorage.getItem("catchFriendsScoresV1") || "[]"); return Array.isArray(value) ? value : []; } catch (_) { return []; } }
-function storeLocal(row) { const rows = localRows(); rows.unshift(row); try { localStorage.setItem("catchFriendsScoresV1", JSON.stringify(rows.slice(0, 100))); } catch (_) {} }
+function storeLocal(row) { const rows = localRows(); rows.unshift(row); try { localStorage.setItem("catchFriendsScoresV1", JSON.stringify(rows.slice(0, 25))); } catch (_) {} }
 function finish(reason) {
   if (!running) return;
   running = false; cancelAnimationFrame(raf); finishReason = reason;
