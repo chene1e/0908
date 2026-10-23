@@ -153,7 +153,7 @@ function finish(reason) {
     survival_seconds: Number(duration.toFixed(2)), finish_reason: reason, created_at: new Date().toISOString()
   };
   storeLocal(finalRow);
-  $("resultTitle").textContent = reason === "lives" ? "❤️ 生命耗尽" : "⏱️ 时间到！";
+  $("resultTitle").textContent = reason === "lives" ? "❤️ 生命耗尽" : reason === "manual" ? "本局提前结束" : "⏱️ 时间到！";
   $("finalScore").textContent = score.toLocaleString(); $("finalCaught").textContent = String(caught);
   $("finalMissed").textContent = String(missed); $("finalCombo").textContent = String(maxCombo); $("finalDuration").textContent = roundTime(duration * 1000);
   $("finishTimestamp").textContent = "完成时间：" + formatDate(finalRow.created_at) + " · 心仪群友：" + AVATARS[selected - 1].name;
@@ -230,8 +230,8 @@ $("startButton").addEventListener("click",startRound);
 $("rankingButton").addEventListener("click",()=>{showOnly("ranking");loadRanking()});
 $("resultRankingButton").addEventListener("click",()=>{showOnly("ranking");loadRanking()});
 $("rankingBackButton").addEventListener("click",()=>showOnly("cover"));
-$("gameBackButton").addEventListener("click",()=>{if(running){finish("lives");return}showOnly("cover")});
-$("endEarlyButton").addEventListener("click",()=>{if(running)finish("lives")});
+$("gameBackButton").addEventListener("click",()=>{if(running){if(window.confirm("退出将结束本局，并把当前成绩提交到排行榜。确定退出吗？"))finish("manual");return}showOnly("cover")});
+$("endEarlyButton").addEventListener("click",()=>{if(running&&window.confirm("确定提前结束本局并上传当前成绩吗？"))finish("manual")});
 $("againButton").addEventListener("click",startRound);
 $("resultCoverButton").addEventListener("click",()=>showOnly("cover"));
 $("retryUploadButton").addEventListener("click",saveRun);
