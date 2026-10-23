@@ -54,8 +54,6 @@ const HEXTECH_AUGMENTS = [
  {id:"luckyFaces",tier:"silver",tierName:"银色强化",name:"欧皇基因",description:"闪光群友出现概率提高 8 个百分点。",note:"更多稀有群友"},
  {id:"steadyHands",tier:"silver",tierName:"银色强化",name:"连击热手",description:"连击判定时间延长至 7 秒。",note:"更宽松的连击窗口"},
  {id:"speedyHands",tier:"silver",tierName:"银色强化",name:"极速投放",description:"缩短投放间隔，让操作更流畅。",note:"更快投放"},
- {id:"mergeScholar",tier:"silver",tierName:"银色强化",name:"合成学徒",description:"每次合成额外获得 8 分，可与其他加分效果叠加。",note:"稳定小额收益"},
- {id:"rareWhisper",tier:"silver",tierName:"银色强化",name:"稀有耳语",description:"闪光群友出现概率额外提高 4 个百分点。",note:"偏向稀有收集"},
  {id:"smallSteps",tier:"silver",tierName:"银色强化",name:"小步快跑",description:"合成等级 1–3 的群友时，得分提高 50%。",note:"前期成长流"},
  {id:"comboRhythm",tier:"silver",tierName:"银色强化",name:"连击节拍",description:"连击倍率提高至 ×1.75。",note:"连击流入门"},
  {id:"streakPurse",tier:"silver",tierName:"银色强化",name:"五连红包",description:"每完成第 5、10、15…次合成，额外获得 60 分。",note:"合成里程碑奖励"},
@@ -70,7 +68,6 @@ const HEXTECH_AUGMENTS = [
  {id:"veteranCraft",tier:"gold",tierName:"金色强化",name:"资深手艺",description:"合成等级 5 及以上的群友时，得分提高 35%。",note:"高等级合成流"},
  {id:"hotStreak",tier:"gold",tierName:"金色强化",name:"三连红包",description:"每完成第 3、6、9…次合成，额外获得 80 分。",note:"节奏越稳收益越高"},
  {id:"chainDividend",tier:"gold",tierName:"金色强化",name:"连击分红",description:"进入连击状态后，每次连击合成额外获得 25 分。",note:"鼓励持续连击"},
- {id:"goldenTouch",tier:"gold",tierName:"金色强化",name:"点石成金",description:"所有合成得分额外提高 25%。",note:"泛用增伤"},
  {id:"luckyTempo",tier:"gold",tierName:"金色强化",name:"好运节拍",description:"连击判定时间延长至 6.5 秒，连击倍率提高至 ×1.8。",note:"稳定连击流"},
  {id:"clearGold",tier:"gold",tierName:"金色强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 2、Level 3 群友消失。",note:"一次性清除 Level 2–3"},
  // 棱彩：强力流派与高上限组合
@@ -435,8 +432,6 @@ function applyHextechAugment(a) {
         case "luckyFaces": hextechRareChanceBonus += 0.08; break;
         case "steadyHands": hextechComboWindowMs = Math.max(hextechComboWindowMs, 7000); break;
         case "speedyHands": hextechDropCooldownMs = Math.min(hextechDropCooldownMs, 180); hextechDropRecoveryMs = Math.min(hextechDropRecoveryMs, 320); break;
-        case "mergeScholar": hextechBonusPerMerge += 8; break;
-        case "rareWhisper": hextechRareChanceBonus += 0.04; break;
         case "smallSteps": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 1.5); break;
         case "comboRhythm": hextechComboMultiplier = Math.max(hextechComboMultiplier, 1.75); break;
         case "streakPurse": hextechEveryFiveMergesBonus += 60; break;
@@ -450,7 +445,6 @@ function applyHextechAugment(a) {
         case "veteranCraft": hextechHighLevelMultiplier = Math.max(hextechHighLevelMultiplier, 1.35); break;
         case "hotStreak": hextechEveryThreeMergesBonus += 80; break;
         case "chainDividend": hextechComboFlatBonus += 25; break;
-        case "goldenTouch": hextechScoreMultiplier += 0.25; break;
         case "luckyTempo": hextechComboWindowMs = Math.max(hextechComboWindowMs, 6500); hextechComboMultiplier = Math.max(hextechComboMultiplier, 1.8); break;
         case "smallMerge": hextechSmallMergeMultiplier = Math.max(hextechSmallMergeMultiplier, 2); break;
         case "prismaticLuck": hextechRareChanceBonus += 0.18; hextechRareScoreMultiplier = Math.max(hextechRareScoreMultiplier, 5); break;
