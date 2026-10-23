@@ -1838,6 +1838,8 @@ function winGame() {
     Runner.stop(runner);
     pauseBtn.disabled = false;
     pauseBtn.textContent = "继续游戏";
+    const gameOverLeaderboardButton = document.getElementById("message-leaderboard");
+    if (gameOverLeaderboardButton) gameOverLeaderboardButton.classList.add("hidden");
     messageRestart.textContent = "继续合成";
     showMessage(
         "🎉 恭喜合成 Level 9！",
@@ -1864,6 +1866,8 @@ function endGame() {
     if (hextechModeActive && scoreSubmitArea) scoreSubmitArea.classList.add("hidden");
     if (hextechModeActive) submitHextechRunScore();
     messageRestart.textContent = "再玩一次";
+    const gameOverLeaderboardButton = document.getElementById("message-leaderboard");
+    if (gameOverLeaderboardButton) gameOverLeaderboardButton.classList.remove("hidden");
     showMessage(
         hextechModeActive ? "⚡ 海克斯挑战结束" : "游戏结束",
         hextechModeActive
@@ -1892,6 +1896,8 @@ function stopGameManually() {
     if (hextechModeActive && scoreSubmitArea) scoreSubmitArea.classList.add("hidden");
     if (hextechModeActive) submitHextechRunScore();
     messageRestart.textContent = "再玩一次";
+    const gameOverLeaderboardButton = document.getElementById("message-leaderboard");
+    if (gameOverLeaderboardButton) gameOverLeaderboardButton.classList.remove("hidden");
     showMessage(
         hextechModeActive ? "⚡ 海克斯挑战结束" : "本局已结束",
         hextechModeActive
