@@ -6,14 +6,17 @@
     $("sitePlayerName").value = profile.name || "";
     $("sitePlayerId").textContent = profile.playerId ? profile.playerId.slice(0, 8) : "首次保存时生成";
     const avatar = profile.avatar || "";
+    $("siteAvatarButton").classList.toggle("has-avatar", Boolean(avatar));
     if (avatar) {
       $("siteAvatarPreview").src = avatar;
       $("siteAvatarPreview").hidden = false;
       $("siteAvatarFallback").hidden = true;
+      $("siteAvatarFallback").style.display = "none";
     } else {
       $("siteAvatarPreview").removeAttribute("src");
       $("siteAvatarPreview").hidden = true;
       $("siteAvatarFallback").hidden = false;
+      $("siteAvatarFallback").style.display = "grid";
     }
     $("siteProfileStatus").textContent = profile.name
       ? "游客资料已载入；点击头像即可更换，全站游戏共用同一头像。"
