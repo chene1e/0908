@@ -60,6 +60,7 @@ const HEXTECH_AUGMENTS = [
  {id:"comboRhythm",tier:"silver",tierName:"银色强化",name:"连击节拍",description:"连击倍率提高至 ×1.75。",note:"连击流入门"},
  {id:"streakPurse",tier:"silver",tierName:"银色强化",name:"五连红包",description:"每完成第 5、10、15…次合成，额外获得 60 分。",note:"合成里程碑奖励"},
  {id:"firstAid",tier:"silver",tierName:"银色强化",name:"备用护身符",description:"本局获得一次濒临失败时的保护。",note:"容错一次"},
+ {id:"clearSilver",tier:"silver",tierName:"银色强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 3 群友消失。",note:"一次性清除 Level 3"},
  // 金色：中期构筑、连击与高等级收益
  {id:"bigMerge",tier:"gold",tierName:"金色强化",name:"高能合成",description:"所有合成基础得分提高 50%。",note:"每次合成都受益"},
  {id:"comboEngine",tier:"gold",tierName:"金色强化",name:"连击引擎",description:"从 2 连击开始获得倍率，倍率提高到 ×2。",note:"奖励连续合成"},
@@ -71,6 +72,7 @@ const HEXTECH_AUGMENTS = [
  {id:"chainDividend",tier:"gold",tierName:"金色强化",name:"连击分红",description:"进入连击状态后，每次连击合成额外获得 25 分。",note:"鼓励持续连击"},
  {id:"goldenTouch",tier:"gold",tierName:"金色强化",name:"点石成金",description:"所有合成得分额外提高 25%。",note:"泛用增伤"},
  {id:"luckyTempo",tier:"gold",tierName:"金色强化",name:"好运节拍",description:"连击判定时间延长至 6.5 秒，连击倍率提高至 ×1.8。",note:"稳定连击流"},
+ {id:"clearGold",tier:"gold",tierName:"金色强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 2、Level 3 群友消失。",note:"一次性清除 Level 2–3"},
  // 棱彩：强力流派与高上限组合
  {id:"smallMerge",tier:"prismatic",tierName:"棱彩强化",name:"小球大计",description:"合成等级 1–3 的群友时，获得双倍分数。",note:"低级合成流派"},
  {id:"prismaticLuck",tier:"prismatic",tierName:"棱彩强化",name:"棱彩欧皇",description:"闪光群友更常出现，稀有合成奖励提高到 ×5。",note:"高风险高收益"},
@@ -81,7 +83,8 @@ const HEXTECH_AUGMENTS = [
  {id:"comboOverdrive",tier:"prismatic",tierName:"棱彩强化",name:"连击超载",description:"从 2 连击开始触发倍率，连击倍率提高至 ×2.5。",note:"连击核心流派"},
  {id:"jackpotEngine",tier:"prismatic",tierName:"棱彩强化",name:"欧皇引擎",description:"闪光群友概率额外提高 12 个百分点，闪光奖励提高到 ×4。",note:"稀有爆发流"},
  {id:"everyThree",tier:"prismatic",tierName:"棱彩强化",name:"三步登天",description:"每完成第 3、6、9…次合成，额外获得 100 分。",note:"快速合成流"},
- {id:"goldRush",tier:"prismatic",tierName:"棱彩强化",name:"黄金洪流",description:"每次合成额外获得 35 分，并且每第 10 次合成再获得 250 分。",note:"持续收益与爆发"}
+ {id:"goldRush",tier:"prismatic",tierName:"棱彩强化",name:"黄金洪流",description:"每次合成额外获得 35 分，并且每第 10 次合成再获得 250 分。",note:"持续收益与爆发"},
+ {id:"clearPrismatic",tier:"prismatic",tierName:"棱彩强化",name:"消除按钮",description:"获得一次消除机会：点击按钮后，全场所有 Level 1、Level 2、Level 3 群友消失。",note:"一次性清除 Level 1–3"}
 ];
 
 // 顶部投放区域的高度
@@ -141,6 +144,7 @@ const hextechProgressTitle = document.getElementById("hextechProgressTitle");
 const hextechProgressHint = document.getElementById("hextechProgressHint");
 const hextechOwnedList = document.getElementById("hextechOwnedList");
 const hextechOwnedInfo = document.getElementById("hextechOwnedInfo");
+const hextechAbilityButtons = document.getElementById("hextechAbilityButtons");
 const hextechAugmentCount = document.getElementById("hextechAugmentCount");
 const hextechScoreStatus = document.getElementById("hextechScoreStatus");
 const scoreSubmitArea = document.getElementById("scoreSubmitArea");
@@ -210,6 +214,7 @@ let roundDrops = 0;
 let roundMerges = 0;
 let roundRare = 0;
 let hextechModeActive = false, hextechOwned = [], hextechOffersTaken = 0, hextechOfferedAugments = [];
+let hextechClearUsed = new Set();
 let hextechScoreMultiplier = 1, hextechBonusPerMerge = 0, hextechRareChanceBonus = 0;
 let hextechRareScoreMultiplier = 3, hextechComboWindowMs = 4500, hextechComboThreshold = 3, hextechComboMultiplier = 1.5;
 let hextechDropCooldownMs = 250, hextechDropRecoveryMs = 450, hextechEventFrequencyMultiplier = 1;
@@ -362,6 +367,25 @@ function renderHextechStatus() {
             hextechProgressHint.textContent = left === 0 ? "海克斯强化已就绪！" : "再合成 " + left + " 次，即可选择第 " + (hextechOffersTaken + 1) + " 枚强化。";
         }
     }
+    if (hextechAbilityButtons) {
+        hextechAbilityButtons.replaceChildren();
+        const clearAbilities = [
+            {id:"clearSilver", label:"消除按钮 · 银", levels:[3], tier:"silver"},
+            {id:"clearGold", label:"消除按钮 · 金", levels:[2,3], tier:"gold"},
+            {id:"clearPrismatic", label:"消除按钮 · 棱彩", levels:[1,2,3], tier:"prismatic"}
+        ];
+        clearAbilities.filter(ability => hextechOwned.some(item => item.id === ability.id)).forEach(ability => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "hextech-ability-button tier-" + ability.tier;
+            const used = hextechClearUsed.has(ability.id);
+            button.textContent = used ? ability.label + "（已使用）" : ability.label + "（清除 Lv." + ability.levels.join("、") + "）";
+            button.disabled = used || !started || paused || gameOver;
+            button.setAttribute("aria-label", used ? ability.label + "已使用" : ability.label + "，清除等级 " + ability.levels.join("、"));
+            button.addEventListener("click", () => useHextechClearAbility(ability));
+            hextechAbilityButtons.appendChild(button);
+        });
+    }
     if (hextechOwnedList) {
         hextechOwnedList.replaceChildren();
         hextechOwned.forEach(a => {
@@ -392,6 +416,19 @@ function renderHextechStatus() {
         });
     }
 }
+function useHextechClearAbility(ability) {
+    if (!hextechModeActive || !started || paused || gameOver || !ability || hextechClearUsed.has(ability.id) || !hextechOwned.some(item => item.id === ability.id) || !engine) return;
+    hextechClearUsed.add(ability.id);
+    const levels = new Set(ability.levels);
+    const targets = Composite.allBodies(engine.world).filter(body => !body.isStatic && levels.has(Number(body.level)));
+    targets.forEach(body => {
+        mergingBodies.delete(body.id);
+        Composite.remove(engine.world, body);
+    });
+    renderHextechStatus();
+    showToast("🧹 " + ability.label + "已发动，清除了 " + targets.length + " 个群友。");
+}
+
 function applyHextechAugment(a) {
     switch (a.id) {
         case "cashBack": hextechBonusPerMerge += 18; break;
@@ -404,6 +441,7 @@ function applyHextechAugment(a) {
         case "comboRhythm": hextechComboMultiplier = Math.max(hextechComboMultiplier, 1.75); break;
         case "streakPurse": hextechEveryFiveMergesBonus += 60; break;
         case "firstAid": hextechShieldCharges += 1; break;
+        case "clearSilver": case "clearGold": case "clearPrismatic": break;
         case "bigMerge": hextechScoreMultiplier += 0.5; break;
         case "comboEngine": hextechComboThreshold = 2; hextechComboMultiplier = Math.max(hextechComboMultiplier, 2); break;
         case "eventMachine": hextechEventFrequencyMultiplier = Math.min(hextechEventFrequencyMultiplier, 0.72); break;
@@ -540,7 +578,7 @@ function submitHextechRunScore() {
     });
 }
 function resetHextechRun() {
-    hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0; hextechOfferedAugments = [];
+    hextechModeActive = window.mergeGameMode === "hextech"; hextechOwned = []; hextechOffersTaken = 0; hextechOfferedAugments = []; hextechClearUsed = new Set();
     hextechScoreMultiplier = 1; hextechBonusPerMerge = 0; hextechRareChanceBonus = 0; hextechRareScoreMultiplier = 3;
     hextechComboWindowMs = 4500; hextechComboThreshold = 3; hextechComboMultiplier = 1.5;
     hextechDropCooldownMs = 250; hextechDropRecoveryMs = 450; hextechEventFrequencyMultiplier = 1;
