@@ -236,6 +236,13 @@ button:disabled {
     background: #2878e8;
 }
 
+/* 游戏结束操作按钮并排显示，窄屏自动换行。 */
+.message-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.message-actions button{min-width:132px;flex:0 1 auto}
+.message-actions .message-leaderboard-button{background:#fff;border:1px solid #2878e8;color:#2878e8}
+.message-actions .message-leaderboard-button:hover{background:#eef5ff}
+@media(max-width:360px){.message-actions{gap:7px}.message-actions button{min-width:118px;padding:10px 12px}}
+
 /* 隐藏元素 */
 .hidden {
     display: none !important;
