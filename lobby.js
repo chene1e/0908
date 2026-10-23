@@ -249,7 +249,8 @@
       (Array.isArray(row.augments) ? row.augments : []).forEach(augment => {
         if (!augment || !augment.id) return;
         const id = String(augment.id); selected.add(id);
-        if (!stats.has(id)) stats.set(id, {id,name:augment.name || "未知海克斯",tier:augment.tier || "",tierName:augment.tierName || "海克斯强化",selectedRuns:0,totalScore:0,bestScore:0,offeredCount:0,trackedSelections:0});
+        // 历史成绩可能包含已移除的强化；排行榜只展示当前目录中的强化。
+        if (!stats.has(id)) return;
         const item = stats.get(id); item.selectedRuns++; item.totalScore += score; item.bestScore = Math.max(item.bestScore, score);
       });
       if (Array.isArray(row.offered_augments)) {
@@ -257,7 +258,8 @@
         row.offered_augments.forEach(augment => {
           if (!augment || !augment.id) return;
           const id = String(augment.id);
-          if (!stats.has(id)) stats.set(id, {id,name:augment.name || "未知海克斯",tier:augment.tier || "",tierName:augment.tierName || "海克斯强化",selectedRuns:0,totalScore:0,bestScore:0,offeredCount:0,trackedSelections:0});
+          // 忽略旧版本成绩中已下架的强化，避免排行榜出现多余条目。
+          if (!stats.has(id)) return;
           stats.get(id).offeredCount++;
           if (selected.has(id)) trackedSelected.add(id);
         });
